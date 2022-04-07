@@ -5,7 +5,7 @@ from sklearn.decomposition import PCA
 
 # data loading and preprocessing
 # load wien museum data 
-wm_original = pd.read_csv("data/wien_museum.csv") # note  file location
+wm_original = pd.read_csv("wien_museum.csv") # note  file location
 # take only interesting columns
 wm_filtered = wm_original[wm_original.columns[[0,3,4,5,6,7,8]]]
 # merge text data of all columns into one 
@@ -15,7 +15,7 @@ wm_preprocessed = utils.preprocessing(wm_filtered, "full_text")
 print("Preprocessing: Done")
 
 # load sentence embedding
-sentence_embeddings = np.loadtxt('sentence_embeddings.csv', delimiter=',')
+sentence_embeddings = np.loadtxt('sentence_embeddings_wien_museum.csv', delimiter=',')
 print("Loading: Done")
 
 # create subset of sentence embeddings (62591 = all samples)
