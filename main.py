@@ -22,7 +22,7 @@ sentence_embeddings = np.loadtxt('sentence_embeddings_wien_museum.csv', delimite
 print("Loading: Done")
 
 # create subset of sentence embeddings (62591 = all samples)
-nr_samples = 10000 
+nr_samples = 5000
 sub_sample = sentence_embeddings[:nr_samples]
 
 # perform PCA: down project to 3 dimensional vector
