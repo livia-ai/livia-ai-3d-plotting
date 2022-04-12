@@ -34,7 +34,7 @@ def plot(meta_data, embeddings, nr_samples, sent_vec_gen_method, dim_red_method,
     df = meta_data[:nr_samples][["classifications", "subjects"]]
     # title gets cut off after "length" characters, otherwise hoverlabel is too long
     length = 75
-    df["title"] = meta_data["id"][:nr_samples] #.apply(lambda x: x[:length] if len(x)>length else x)
+    df["title"] = meta_data["title"][:nr_samples].apply(lambda x: x[:length] if len(x)>length else x)
     df["x"] = embeddings[:,0]
     df["y"] = embeddings[:,1]
     df["z"] = embeddings[:,2]
