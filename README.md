@@ -1,6 +1,10 @@
-Python Script to create 3D plots with Plotly: main.py
+## Scripts and their functionality
+- basic_3D_plotting.py
+- -Python Script to create 3D plots with Plotly: main.py
+- - sentence_embeddings_wien_museum.csv is on Google Drive in folder 04_Data
 
--> sentence_embeddings_wien_museum.csv is on Google Drive in folder 04_Data
+-
+-
 
 ## Some minor enhancements/questions
 
