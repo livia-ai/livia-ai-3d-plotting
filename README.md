@@ -1,10 +1,12 @@
-## Scripts and their functionality
-- basic_3D_plotting.py
-- -Python Script to create 3D plots with Plotly: main.py
-- - sentence_embeddings_wien_museum.csv is on Google Drive in folder 04_Data
+## Scripts and their functionalities
+- **basic_3d_plotting.py**
+  
+  Python Script to create 3D plot of document embedding with Plotly. <br>
+  -> Sentence_embeddings_wien_museum.csv is on Google Drive in folder 04_Data
 
--
--
+- **clustering.py**
+
+  Performs k-means clustering on n dimensional sentence embedding.
 
 ## Some minor enhancements/questions
 
