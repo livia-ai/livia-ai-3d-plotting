@@ -1,0 +1,5 @@
+Sentence transformers
+https://www.sbert.net/
+https://www.sbert.net/examples/applications/computing-embeddings/README.html
+https://www.sbert.net/examples/applications/clustering/README.html
+
