@@ -29,7 +29,7 @@ wm_filtered = wm_filtered.assign(full_text = wm_filtered[wm_filtered.columns[1:]
 # load sentence embedding
 args = {"fname": "data/sentence_embeddings_wien_museum.csv", "delimiter" : ","}
 sentence_embeddings, time_emb = utils.time_function(np.loadtxt, args)
-print(f"Loading: {round(time_emb,4)}s \n\n")
+print(f"Loading: {round(time_emb,4)}s \n")
 
 # create subset of sentence embeddings (62591 = all samples)
 nr_samples = 62591 
@@ -98,7 +98,7 @@ counts = utils.get_counts(dataframe=df, column_to_count="classifications", nr_cl
 # create stacked barplot -> distribution of classifications amoing clusters
 chart_path = f"bar_{nr_clusters}c_{n_components}d"
 path+= chart_path
-print(path)
+
 utils.plot_counts_clusters(counts=counts, nr_clusters=nr_clusters, path=path)
 # store csv of dataframe for later use
 df.to_csv(path + ".csv")
