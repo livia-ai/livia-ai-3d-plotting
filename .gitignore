@@ -2,3 +2,4 @@
 *.csv
 data/
 clustering_archive/
+.ipynb_checkpoints/
