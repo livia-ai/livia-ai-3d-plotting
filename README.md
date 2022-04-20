@@ -1,12 +1,23 @@
 ## Scripts and their functionalities
 - **basic_3d_plotting.py**
   
-  Python Script to create 3D plot of document embedding with Plotly. <br>
+  Python Script to create 3D plot of sentence embedding with Plotly. <br>
   -> Sentence_embeddings_wien_museum.csv is on Google Drive in folder 04_Data
 
 - **clustering.py**
 
   Performs k-means clustering on n dimensional sentence embedding.
+  
+- **triplets.py** 
+  
+  Generates triplets(original sample, similar sample, dissimilar sample) given a subset of the the sentence embeddings. <br>
+  Also contains some functions for visualization.
+  
+- **combine_data.py**
+
+  Not yet functional. <br>
+  Tries to combine all 3 datasets into one big one and peform the same tasks as above.
+ 
 
 ## Some minor enhancements/questions
 
