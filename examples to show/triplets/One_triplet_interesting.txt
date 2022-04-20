@@ -1,0 +1,12 @@
+Triplet IDs: [34575, 34078, 42382]
+Sample:
+ Weltausstellung 1873: Ägyptische Baugruppe (Nr. 723) Wiener Photographen-Association | Oscar Kramer Grafik- und Fotosammlung | Fotografie 1873 2. Bezirk: Leopoldstadt Weltausstellung
+https://sammlung.wienmuseum.at/objekt/342637/
+
+Similar:
+ Weltausstellung 1873: Ägyptische Baugruppe (Nr. 723) Oscar Kramer | Wiener Photographen-Association Grafik- und Fotosammlung | Fotografie 1873 2. Bezirk: Leopoldstadt Weltausstellung
+https://sammlung.wienmuseum.at/objekt/117096/
+
+Dissimilar:
+ János Barkóczy Adolf Dauthage | Josef Bermann | Joseph Stoufs Grafik- und Fotosammlung | Druckgrafik | Lithografien 1860 Porträt | Mann
+
