@@ -1,0 +1,10 @@
+Before creating the bar plot the counts have been filtered!
+Cutoff value: 100 
+
+Classes remaining: 45
+Classes discarded: 345
+
+Remaining samples: 58694
+Discarded samples: 3856
+Remaining samples in percent: 93.84%
+Discarded samples in percent: 6.16%

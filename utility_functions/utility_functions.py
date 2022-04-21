@@ -116,17 +116,28 @@ def get_counts(dataframe, column_to_count, nr_clusters):
 
     return counts
 
-def plot_counts_full(counts):
+def plot_counts_full(counts, path, column_to_count):
     alt.data_transformers.disable_max_rows()
-    #alt.renderers.enable('altair_viewer')
 
     bars = alt.Chart(counts).mark_bar().encode(
-        x=alt.X('classifications', sort='-y'),
-        y='counts_full',
+        x=alt.X(column_to_count, sort='-y'),
+        y='counts:Q',
     )
-    bars.configure_axis(labelLimit=400)
 
-    asav.save(bars, f'bar_full.pdf')
+
+    text = bars.mark_text(
+        #align='left',
+        #baseline='middle',
+        dy=-3,  # Nudges text up 
+        size = 8
+    ).encode(
+        text='counts:Q'
+    )
+
+    plot = (bars + text).configure_axis(labelLimit=180, labelOffset=30)
+
+    asav.save(plot, f'{path}.pdf')
+
 
 def plot_counts_clusters(counts, nr_clusters, path):
     alt.data_transformers.disable_max_rows()
