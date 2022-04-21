@@ -21,6 +21,10 @@
 - **downproject_se.py**
 
   Loads full sentence embedding, down-projects it to d dimensions and saves ut with the museum-id for every sample .
+
+- **bar_plots_counts.py**
+
+  Create bar plots that show value counts of one dataframe column.
  
 
 ## Some minor enhancements/questions
