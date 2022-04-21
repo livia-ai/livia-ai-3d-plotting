@@ -2,7 +2,7 @@
 - **basic_3d_plotting.py**
   
   Python Script to create 3D plot of sentence embedding with Plotly. <br>
-  -> Sentence_embeddings_wien_museum.csv is on Google Drive in folder 04_Data
+  Works now with all 3 datasets, **down projected version of all sentence embeddings(with museum-id for every sample) is on google drive.**
 
 - **clustering.py**
 
@@ -17,6 +17,10 @@
 
   Not yet functional. <br>
   Tries to combine all 3 datasets into one big one and peform the same tasks as above.
+  
+- **downproject_se.py**
+
+  Loads full sentence embedding, down-projects it to d dimensions and saves ut with the museum-id for every sample .
  
 
 ## Some minor enhancements/questions
