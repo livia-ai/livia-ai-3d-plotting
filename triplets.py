@@ -27,8 +27,6 @@ triplet_dataframe  = triplet_dataframe.assign(x = coordinates_3d[:,0])
 triplet_dataframe  = triplet_dataframe.assign(y = coordinates_3d[:,1])
 triplet_dataframe  = triplet_dataframe.assign(z = coordinates_3d[:,2])
 
-queries = None
-
 # sample n query samples randomly 
 n = 30
 rng = np.random.default_rng()

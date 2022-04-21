@@ -37,23 +37,26 @@ def preprocessing(text_data: pd.DataFrame, column_name: str) -> pd.DataFrame:
         
     return helper
 
-def plot(meta_data, embeddings, nr_samples, sent_vec_gen_method, dim_red_method, color):
+def plot(meta_data, sample_ids, embeddings, color, identifier, hover_name, title):
 
-    df = meta_data[:nr_samples][["classifications", "subjects"]]
+    #print(meta_data.columns)
+    #print(color, hover_name)
+    df = meta_data.loc[sample_ids][[color, identifier]]
+    #print(df)
     # title gets cut off after "length" characters, otherwise hoverlabel is too long
     length = 75
-    df["title"] = meta_data["title"][:nr_samples].apply(lambda x: x[:length] if len(x)>length else x)
+    df["title"] = meta_data[hover_name].loc[sample_ids].apply(lambda x: str(x)[:length] if len(str(x))>length else str(x))
+
     df["x"] = embeddings[:,0]
     df["y"] = embeddings[:,1]
     df["z"] = embeddings[:,2]
     df.fillna('NaN', inplace=True)
 
-    title = f"Visualization of: {sent_vec_gen_method} + {dim_red_method} + {nr_samples} Samples + Color:{color}"
-
     fig = px.scatter_3d(df, 
                         x='x', y='y', z='z', 
                         color=color, 
                         hover_name="title", # what to show when hovered over
+                        hover_data=[identifier],
                         width=2500, height=1250, # adjust height and width
                         title=title)
 
@@ -63,7 +66,7 @@ def plot(meta_data, embeddings, nr_samples, sent_vec_gen_method, dim_red_method,
                             font = dict(size = 10)
                             ), 
                     hoverlabel=dict(
-                            font_size=9,
+                            font_size=10,
                             )
                     )
 
