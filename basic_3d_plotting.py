@@ -1,11 +1,13 @@
 #imports
+from asyncio import SendfileNotAvailableError
+from random import sample
 import numpy as np
 import pandas as pd
 import utility_functions.utility_functions as utils
 from sklearn.decomposition import PCA
 
 # data loading and preprocessing
-dataset_name = "BEL"
+dataset_name = "MAK"
 
 if dataset_name == "WM":
     # load and prepare wien museum
@@ -46,28 +48,36 @@ if dataset_name == "BEL":
     sentence_embeddings = np.loadtxt('data/se_bel_100d.csv', delimiter=',', dtype= object)[:, 1:]
     meta_data = bel_filtered
     # dataset specific column names used for coloring and hover labels
-    color = "Collection" # ObjectClass, Collection
+    color = "ObjectClass" # Collection, Temporal, (ObjectClass -> not nice)
     identifier = "Identifier"
     hover_name = "Title"
 
 print(sentence_embeddings.shape)
 
 # randomly sample a subset of the sentence embeddings (62591 = all samples) 
-n = 5000
-rng = np.random.default_rng()
-sample_ids = rng.integers(low=0, high=len(sentence_embeddings), size=n)
-samples = sentence_embeddings[sample_ids]
+for n in [25000,50000,100000,150000,200000,259598]:
 
-# perform PCA: down project to 3 dimensional vector
-pca_3d = PCA(n_components=3)
-embeddings_3d = pca_3d.fit_transform(samples)
+    #n = 5113
+    rng = np.random.default_rng()
+    id_list = list(range(len(sentence_embeddings)))
+    sample_ids = rng.choice(id_list, size=n, replace=False)
+    samples = sentence_embeddings[sample_ids]
 
-# plot results 
-title = f"{n} Random Samples from {dataset_name} Data"
-utils.plot(meta_data = meta_data, 
-           sample_ids = sample_ids,
-           embeddings = embeddings_3d,  
-           color = color,
-           identifier = identifier,
-           hover_name = hover_name, 
-           title = title)
+    print(len(set(sample_ids)))
+
+    #sample_ids = np.array(list(range(len(sentence_embeddings))))
+    #samples = sentence_embeddings[:]
+
+    # perform PCA: down project to 3 dimensional vector
+    pca_3d = PCA(n_components=3)
+    embeddings_3d = pca_3d.fit_transform(samples)
+
+    # plot results 
+    title = f"{n} Random Samples from {dataset_name} Data"
+    utils.plot(meta_data = meta_data, 
+            sample_ids = sample_ids,
+            embeddings = embeddings_3d,  
+            color = color,
+            identifier = identifier,
+            hover_name = hover_name, 
+            title = title)
