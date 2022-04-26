@@ -39,8 +39,8 @@ model = SentenceTransformer('distiluse-base-multilingual-cased-v1')
 
 text_list = []
 
-mak_text = []
 wm_text = []
+mak_text = []
 bel_text = []
 
 for text in wm_preprocessed["pre_text"]:
@@ -58,14 +58,13 @@ for text in bel_preprocessed["pre_text"]:
 #se_combined = model.encode(text_list)
 #print(se_combined.shape)
 #np.savetxt('data/sentence_embeddings_combined.csv', se_combined, delimiter=',')
+se_wm = model.encode(wm_text)
+print(se_wm.shape)
+np.savetxt('data/sentence_embeddings_wm.csv', se_wm, delimiter=',')
 
 se_mak = model.encode(mak_text)
 print(se_mak.shape)
 np.savetxt('data/sentence_embeddings_mak.csv', se_mak, delimiter=',')
-
-se_wm = model.encode(wm_text)
-print(se_wm.shape)
-np.savetxt('data/sentence_embeddings_wm.csv', se_wm, delimiter=',')
 
 se_bel = model.encode(bel_text)
 print(se_bel.shape)
