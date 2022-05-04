@@ -276,12 +276,11 @@ def triplets_clustering(query, data, df, nr_clusters=5, nr_farthest=3, n_random_
     # select a random sample form the subsample
     random_subsample = np.concatenate([[rng.permuted(inds)[:n_random_sample] for inds in indices_clusters]])
 
-    # calculate distances between query and random subsample
-    data_sampled = data[random_subsample]
+    # calculate distances between query and random subsampls
     results = list()
     for i in range(n):
 
-        distance_magic_clustering = calc_distances(query[i].reshape(1,-1), data_sampled[i], "cosine", n_neighbors)
+        distance_magic_clustering = calc_distances(query[i].reshape(1,-1), data[random_subsample[i]], "cosine", n_neighbors)
 
         max_k_ids_subsample = distance_magic_clustering[0][2].astype("int")
         max_k_dists = distance_magic_clustering[0][3]

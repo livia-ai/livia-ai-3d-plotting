@@ -63,55 +63,50 @@ print(f"Time needed for brute force nn&fn: {time_bf}s")
 print()
 ############################################
 
-for index in range():
-    ############################################
-    #### Clustering FN Algo ####
-    n_clusters = 5
-    k_farthest = 3
-    n_random_samples = 3000
-    results_clustering_algo , time_clustering = utils.triplets_clustering(query=queries, data=stand_sentence_embeddings, df=triplet_dataframe,
-                                                                        nr_clusters=n_clusters, nr_farthest=k_farthest, n_random_sample=n_random_samples)
-    print(f"Time needed for clustering nn&fn: {time_clustering}s")
-    ###########################################
+#for index in range(5):
+
+############################################
+#### Clustering FN Algo ####
+n_clusters = 5
+k_farthest = 3
+n_random_samples = 3000
+results_clustering_algo , time_clustering = utils.triplets_clustering(query=queries, data=stand_sentence_embeddings, df=triplet_dataframe,
+                                                                    nr_clusters=n_clusters, nr_farthest=k_farthest, n_random_sample=n_random_samples)
+print(f"Time needed for clustering nn&fn: {time_clustering}s")
+###########################################
 
 
-    ###########################################
-    # Evaluate Results
-    mean_dists = list()
-    mean_positions = list()
-    for i in range(n):
-        max_ids_cl = results_clustering_algo[i][2]
-        max_dists_cl = results_clustering_algo[i][3]
+###########################################
+# Evaluate Results
+mean_dists = list()
+mean_positions = list()
+for i in range(n):
+    max_ids_cl = results_clustering_algo[i][2]
+    max_dists_cl = results_clustering_algo[i][3]
 
-        max_ids_bf = true_results[i][2]
-        max_dists_bf = true_results[i][3]
+    max_ids_bf = true_results[i][2]
+    max_dists_bf = true_results[i][3]
 
-        #print(max_dists_cl)
-        #print(max_dists_bf)
+    performance_cluster_algo = [np.argwhere(max_ids_bf == idx) for idx in max_ids_cl]
+    #print(performance_cluster_algo)
+    sum_pos = 0
+    for i in performance_cluster_algo:
+        if len(i) == 0:
+            sum_pos -= 10
+        else:
+            sum_pos += i[0][0]
 
-        performance_cluster_algo = [np.argwhere(max_ids_bf == idx) for idx in max_ids_cl]
-        #print(performance_cluster_algo)
-        sum_pos = 0
-        for i in performance_cluster_algo:
-            if len(i) == 0:
-                sum_pos -= 10
-            else:
-                sum_pos += i[0][0]
+    mean_positions.append(abs(sum_pos/len(performance_cluster_algo) - k_bf))
+    mean_dists.append((np.mean(max_dists_cl),np.mean(max_dists_bf[-6:]) ))
 
-        mean_positions.append(abs(sum_pos/len(performance_cluster_algo) - k_bf))
-        mean_dists.append((np.mean(max_dists_cl),np.mean(max_dists_bf[-6:]) ))
 
-    #print(mean_positions)
-    #print(mean_dists) 
+import matplotlib.pyplot as plt
+plt.hist(mean_positions)
+plt.title(f"Performance: n_clusters={n_clusters}, k_farthest={k_farthest}, n_random_samples={n_random_samples} \n time needed cluster={time_clustering}s, , time needed bf={time_bf}s")
+plt.savefig(f'visualizations/performance_hist_{n_clusters}ncl_{k_farthest}kf_{n_random_samples}nrs.png')
 
-    import matplotlib.pyplot as plt
-    plt.hist(mean_positions)
-    plt.title(f"512d_{index}\n time needed cluster={time_clustering}s, , time needed bf={time_bf}s")
-    plt.savefig(f'performance_hist_512d_{index}.png')
-
-    plt.clf()
-    print()
-
+plt.clf()
+######################################
 
 
 #print("query:", query_ids)
