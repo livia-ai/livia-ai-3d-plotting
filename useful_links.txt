@@ -11,3 +11,6 @@ https://arxiv.org/abs/1907.04307
 
 3.) Making Monolingual Sentence Embeddings Multilingual using Knowledge Distillation
 https://arxiv.org/abs/2004.09813
+
+Self supervised learning: Contrastive Learning /Triplet-loss 
+https://lilianweng.github.io/posts/2021-05-31-contrastive/

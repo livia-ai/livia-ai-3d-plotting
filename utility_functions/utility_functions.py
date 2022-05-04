@@ -1,3 +1,5 @@
+from random import random
+import string
 from time import time
 import pandas as pd
 import numpy as np
@@ -11,6 +13,9 @@ import altair as alt
 import altair_saver as asav
 
 import sklearn
+from sklearn.cluster import KMeans
+import sklearn.neighbors as neighbors
+import scipy.spatial.distance as dist
 
 
 def preprocessing(text_data: pd.DataFrame, column_name: str) -> pd.DataFrame:
@@ -138,7 +143,6 @@ def plot_counts_full(counts, path, column_to_count):
 
     asav.save(plot, f'{path}.pdf')
 
-
 def plot_counts_clusters(counts, nr_clusters, path):
     alt.data_transformers.disable_max_rows()
     alt.renderers.enable('altair_viewer')
@@ -172,6 +176,7 @@ def time_function(function, x):
 def calc_distances(query, data, metric, k):
     
     if query.shape[0] == 1:
+        results = list()
         # claculate distance of query to all data points in data
         dists = sklearn.metrics.pairwise_distances(query, data, metric=metric)[0]
         # zip ids to distances for sorting
@@ -185,7 +190,8 @@ def calc_distances(query, data, metric, k):
         max_k_ids = sorted_dists[-k:, 0]
         max_k_dists = sorted_dists[-k:, 1]
 
-        return min_k_ids, min_k_dists, max_k_ids, max_k_dists
+        results.append((min_k_ids, min_k_dists, max_k_ids, max_k_dists))
+        return results
     
     else:
         # claculate distance of query to all data points in data
@@ -209,10 +215,10 @@ def calc_distances(query, data, metric, k):
 
         return results
 
-def create_triplets(query, query_ids, embeddings, metric, k):
+def triplets_brute_force(query, query_ids, embeddings, metric, k):
     
     neighborhoods = calc_distances(query, embeddings, metric, k)
-    
+
     rng = np.random.default_rng()
     res = list()
     triplets = list()
@@ -230,6 +236,62 @@ def create_triplets(query, query_ids, embeddings, metric, k):
         i += 1
         
     return neighborhoods, triplets
+
+def triplets_clustering(query, data, df, nr_clusters=5, nr_farthest=3, n_random_sample=3000):
+
+    n = len(query)
+
+    rng = np.random.default_rng()
+
+    start = time()
+
+    # clustering
+    cluster_algo = KMeans(n_clusters=nr_clusters)
+    cluster_algo = cluster_algo.fit(data)
+    labels = cluster_algo.labels_
+
+    df["label"] = labels
+    df = df.astype({"label": "str"})
+
+    end_clustering = time()
+    clustering_time = round(end_clustering - start, 2)
+
+    # nearest_neighbors - sklearn
+    n_neighbors = 5 # rather small n_neighbors because of randomness & approximations
+    nn = neighbors.NearestNeighbors(n_neighbors=n_neighbors+1, metric="cosine")
+    nn.fit(data)
+    nn_dists, nn_indices = nn.kneighbors(query)
+    # compute distances to cluster centers
+    dists_to_cluster_centers = cluster_algo.transform(query)
+    # choose k clusters with maximal distance
+    argsort = np.argsort(dists_to_cluster_centers, axis=1)
+    k_farthest_clusters = argsort[:,-nr_farthest:]
+
+
+    # select only the data that belongs to the k-farthest clusters
+    string_labels = k_farthest_clusters.astype(str)
+    df_clusters = [df.loc[df["label"].isin(string_label)] for string_label in string_labels]
+    # extract row indices from subsample
+    indices_clusters = [np.array(df.index) for df in df_clusters]
+    # select a random sample form the subsample
+    random_subsample = np.concatenate([[rng.permuted(inds)[:n_random_sample] for inds in indices_clusters]])
+
+    # calculate distances between query and random subsample
+    data_sampled = data[random_subsample]
+    results = list()
+    for i in range(n):
+
+        distance_magic_clustering = calc_distances(query[i].reshape(1,-1), data_sampled[i], "cosine", n_neighbors)
+
+        max_k_ids_subsample = distance_magic_clustering[0][2].astype("int")
+        max_k_dists = distance_magic_clustering[0][3]
+        max_k_ids_df = random_subsample[i][max_k_ids_subsample]
+
+        results.append((nn_indices[i][1:], nn_dists[i][1:], max_k_ids_df, max_k_dists))
+
+    end = time()
+
+    return results, round(end - start, 2)
 
 def display_one_triplet(triplets, dataframe):
     

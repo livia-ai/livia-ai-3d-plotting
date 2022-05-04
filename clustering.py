@@ -58,16 +58,16 @@ path = ""
 #     os.mkdir(dir_path)
 
 # specify number of dimenions to use for clustering
-n_components = 512
+#n_components = 512
 # for n_components in [50,40,30,20,10,5,3,2,1]:
 
 # PCA
-pca = PCA(n_components=n_components)
-emb_clustering = pca.fit_transform(sub_sample)
-print(f"Explained variance with {n_components} compononents: {np.sum(pca.explained_variance_ratio_)}")
+#pca = PCA(n_components=n_components)
+#emb_clustering = pca.fit_transform(sub_sample)
+#print(f"Explained variance with {n_components} compononents: {np.sum(pca.explained_variance_ratio_)}")
 
 # Clustering
-args = {"X":emb_clustering}
+args = {"X":sub_sample}
 cluster_algo = KMeans(n_clusters=nr_clusters)
 cluster_algo, time_clust = utils.time_function(cluster_algo.fit, args)
 print(f"Clustering: {round(time_clust,4)}s")
