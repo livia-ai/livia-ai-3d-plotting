@@ -1,6 +1,6 @@
 #imports
-from asyncio import SendfileNotAvailableError
-from random import sample
+import sys
+sys.path.append('.')
 import numpy as np
 import pandas as pd
 import utility_functions.utility_functions as utils
@@ -24,9 +24,9 @@ if dataset_name == "WM":
 
 if dataset_name == "MAK":
     # load and prepare mak
-    mak_1 = pd.read_csv("data/mak_1.csv")
-    mak_2 = pd.read_csv("data/mak_2.csv")
-    mak_3 = pd.read_csv("data/mak_3.csv")
+    mak_1 = pd.read_csv("data/mak_1.csv", low_memory=False)
+    mak_2 = pd.read_csv("data/mak_2.csv", low_memory=False)
+    mak_3 = pd.read_csv("data/mak_3.csv", low_memory=False)
     mak = pd.concat([mak_1, mak_2, mak_3])
     mak_filtered = mak[mak.columns[[0,2,4,5,15,16,17,21,28,29,31,34,36,38]]]
     mak_filtered.reset_index(drop=True, inplace=True)
@@ -51,8 +51,6 @@ if dataset_name == "BEL":
     color = "ObjectClass" # Collection, Temporal, (ObjectClass -> not nice)
     identifier = "Identifier"
     hover_name = "Title"
-
-print(sentence_embeddings.shape)
 
 # randomly sample a subset of the sentence embeddings (62591 = all samples) 
 for n in [25000,50000,100000,150000,200000,259598]:

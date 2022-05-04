@@ -1,15 +1,14 @@
-from distutils import dir_util
+import sys
+sys.path.append('.')
 import numpy as np
 import pandas as pd
-import os
 import utility_functions.utility_functions as utils
 from sklearn.decomposition import PCA
-
 from sklearn.cluster import KMeans
-from sklearn.cluster import DBSCAN
-from sklearn.cluster import OPTICS
-from sklearn.mixture import GaussianMixture
-from sklearn.cluster import Birch
+#from sklearn.cluster import DBSCAN
+#from sklearn.cluster import OPTICS
+#from sklearn.mixture import GaussianMixture
+#from sklearn.cluster import Birch
 
 
 ############### data loading and preprocessing ###############
@@ -20,11 +19,6 @@ wm_original = pd.read_csv("data/wien_museum.csv") # note  file location
 wm_filtered = wm_original[wm_original.columns[[0,3,4,5,6,7,8]]]
 # merge text data of all columns into one 
 wm_filtered = wm_filtered.assign(full_text = wm_filtered[wm_filtered.columns[1:]].apply(lambda x: ' '.join(x.dropna().astype(str)),axis=1))
-
-## apply preprocessing pipeline
-# args = {"text_data": wm_filtered, "column_name": "full_text"}
-# wm_preprocessed, time_pre = utils.time_function(utils.preprocessing, args)
-#print(f"Preprocessing: {round(time_pre,4)}s")
 
 # load sentence embedding
 args = {"fname": "data/sentence_embeddings_wien_museum.csv", "delimiter" : ","}

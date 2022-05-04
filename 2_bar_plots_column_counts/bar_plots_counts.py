@@ -1,8 +1,8 @@
 #imports
-import numpy as np
+import sys
+sys.path.append('.')
 import pandas as pd
 import utility_functions.utility_functions as utils
-from sklearn.decomposition import PCA
 
 
 # data loading and preprocessing

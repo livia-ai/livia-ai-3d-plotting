@@ -1,14 +1,15 @@
 # imports
-from re import S
-import string
+import sys
+sys.path.append('.')
 import time
 import numpy as np
 import pandas as pd
 from utility_functions import utility_functions as utils
-import sklearn
 from sklearn.decomposition import PCA
-from sklearn.cluster import KMeans
-import sklearn.neighbors as neighbors
+
+#import sklearn
+#from sklearn.cluster import KMeans
+#import sklearn.neighbors as neighbors
 
 #############################################
 #### prepare data ####
