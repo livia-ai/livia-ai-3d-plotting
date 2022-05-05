@@ -237,7 +237,7 @@ def triplets_brute_force(query, query_ids, embeddings, metric, k):
         
     return neighborhoods, triplets
 
-def triplets_clustering(query, data, df, nr_clusters=5, nr_farthest=3, n_random_sample=3000):
+def nn_fn_clustering(query, data, df, nr_clusters=5, nr_farthest=3, n_random_sample=3000):
 
     n = len(query)
 
@@ -292,36 +292,43 @@ def triplets_clustering(query, data, df, nr_clusters=5, nr_farthest=3, n_random_
 
     return results, round(end - start, 2)
 
+def triplets_clustering(results, query_ids):
+    results = np.array(results)
+    rng = np.random.default_rng()
+    sim = rng.permuted(results[:,0], axis=1)[:,0].astype(int)
+    disim = results[:,2][:,-1].astype(int)
+    return list(zip(query_ids, sim, disim))
+
 def display_one_triplet(triplets, dataframe):
     
     length = len(triplets)
     
     rng = np.random.default_rng()
     idx = rng.integers(length)
+    sample = triplets[idx]
+    sample_id, similar_id, dissimilar_id = sample
+    print("Triplet IDs:", sample)
     
-    sample_id, similar_id, dissimilar_id = triplets[idx]
-    print("Triplet IDs:", triplets[idx])
-    
-    sample_data = dataframe.loc[sample_id]
-    similar_data = dataframe.loc[similar_id]
-    dissimilar_data = dataframe.loc[dissimilar_id]
+    #sample_data = dataframe.loc[sample_id]
+    #similar_data = dataframe.loc[similar_id]
+    #dissimilar_data = dataframe.loc[dissimilar_id]
         
-    sample_text = sample_data["full_text"]
-    similar_text = similar_data["full_text"]
-    disimilar_text = dissimilar_data["full_text"]
+    #sample_text = sample_data["full_text"]
+    #similar_text = similar_data["full_text"]
+    #disimilar_text = dissimilar_data["full_text"]
     
-    triplet_df = dataframe.loc[triplets[idx]]
+    triplet_df = dataframe.loc[list(sample)]
     triplet_df = triplet_df.assign(label = ["sample", "similar", "disimilar"])
     
-    print("Sample:\n", sample_text)
-    print()
-    print("Similar:\n", similar_text)
-    print()
-    print("Dissimilar:\n", disimilar_text)
-    print()
+    #print("Sample:\n", sample_text)
+    #print()
+    #print("Similar:\n", similar_text)
+    #print()
+    #print("Dissimilar:\n", disimilar_text)
+    #print()
     
     fig = px.scatter_3d(triplet_df, x='x', y='y', z='z', 
-                    color='label', hover_name="title", hover_data=["id", "classifications"],
+                    color='label', hover_name="title", hover_data=["id", "classifications", "url"],
                     width=1100, height=800,# adjust height and width
                     title="One triplet")
 
@@ -337,6 +344,36 @@ def display_one_triplet(triplets, dataframe):
     fig.update_traces(marker_size = 3)
 
     fig.show()
+
+def meta_data_triplets(triplets, dataframe):
+    for sample in triplets[:]:
+        sample_id, similar_id, dissimilar_id = sample
+        print("Triplet IDs:", sample)
+        
+        sample_data = dataframe.loc[sample_id]
+        similar_data = dataframe.loc[similar_id]
+        dissimilar_data = dataframe.loc[dissimilar_id]
+
+        sample_title = sample_data["title"]
+        similar_title  = similar_data["title"]
+        disimilar_title  = dissimilar_data["title"]
+
+        sample_url = sample_data["url"]
+        similar_url = similar_data["url"]
+        disimilar_url  = dissimilar_data["url"]
+        
+        #triplet_df = dataframe.loc[list(sample)]
+        #triplet_df = triplet_df.assign(label = ["sample", "similar", "disimilar"])
+        
+        print(f"Sample: {sample_title} \n {sample_url}")
+        print(f"Similar: {similar_title} \n {similar_url}")
+        print(f"Dissimilar: {disimilar_title} \n {disimilar_url}\n")
+
+        with open("example_triplets.txt", "a") as file:
+            file.write(f"Triplet IDs:{sample}\n" +
+                       f"Sample: {sample_title}\n{sample_url}\n" +
+                       f"Similar: {similar_title}\n{similar_url}\n" +
+                       f"Dissimilar: {disimilar_title}\n{disimilar_url}\n\n")
 
 def display_all_triplets(triplets, dataframe):
     
