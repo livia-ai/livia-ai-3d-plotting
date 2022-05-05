@@ -22,9 +22,9 @@ wm_filtered = wm_original[wm_original.columns[[0,1,3,4,5,6,7,8]]]
 # merge text data of all columns into one 
 #wm_filtered = wm_filtered.assign(full_text = wm_filtered[wm_filtered.columns[2:]].apply(lambda x: ' '.join(x.dropna().astype(str)),axis=1))
 # load sentence embedding 100d
-#sentence_embeddings = np.loadtxt('data/se_wm_100d.csv', delimiter=',')[:, 1:]
+sentence_embeddings = np.loadtxt('data/sentence_embeddings_wm.csv', delimiter=',')[:, 1:]
 # load sentence embedding 512d
-sentence_embeddings = np.loadtxt('data/sentence_embeddings_wm.csv', delimiter=',')
+#sentence_embeddings = np.loadtxt('data/sentence_embeddings_wm.csv', delimiter=',')
 
 # standardize data
 stand_sentence_embeddings = (sentence_embeddings - np.mean(sentence_embeddings, axis=0)) / np.std(sentence_embeddings, axis=0)
@@ -42,8 +42,8 @@ triplet_dataframe  = triplet_dataframe.assign(y = coordinates_3d[:,1])
 triplet_dataframe  = triplet_dataframe.assign(z = coordinates_3d[:,2])
 #####
 
+n = 1000 
 #sample n queries randomly
-n = 1000
 rng = np.random.default_rng()
 query_ids = rng.integers(low=0, high=len(stand_sentence_embeddings), size=n)
 queries = stand_sentence_embeddings[query_ids]
@@ -54,17 +54,21 @@ print(f"Time needed for data preparation: {round(end_prep - start_prep, 2)}s")
 
 
 ############################################
+# Performance comparison
+#n_list = [1, 10, 100]
+#utils.performance_comparison_triplets(n_list, stand_sentence_embeddings, triplet_dataframe)
+############################################
+
+
+############################################
 ##### Brute-Force FN Algo for Evaluation ####
 #k_bf = 1000 #this has to be quite large to get accurate positions in evaluation
 #start_bf = time.time()
 #true_results, triplets = utils.triplets_brute_force(queries, query_ids, stand_sentence_embeddings, "cosine", k_bf)
 #end_bf = time.time()
 #time_bf = round(end_bf - start_bf, 2)
-#print(f"Time needed for brute force nn&fn: {time_bf}s")
-#print()
 ############################################
 
-#for index in range(5):
 
 ############################################
 #### Clustering NN FN Algo ####
@@ -73,21 +77,22 @@ k_farthest = 3
 n_random_samples = 3000
 results_clustering_algo , time_clustering = utils.nn_fn_clustering(query=queries, data=stand_sentence_embeddings, df=triplet_dataframe,
                                                                     nr_clusters=n_clusters, nr_farthest=k_farthest, n_random_sample=n_random_samples)
-print(f"Time needed for clustering nn&fn: {time_clustering}s")
-###########################################
-  
+
+#tr_start = time.time()
+triplets = utils.triplets_clustering(results_clustering_algo, query_ids)
+#tr_end = time.time()
+#triplets_time = (tr_end - tr_start)
+#time_cl = round(time_clustering +  triplets_time, 2)
 
 ###########################################
-# generate triplets
-
-#triplets = utils.triplets_clustering(results_clustering_algo, query_ids)
-#utils.meta_data_triplets(triplets, triplet_dataframe)
+# Evaluate Triplets
 #utils.display_one_triplet(triplets, triplet_dataframe)
+#utils.meta_data_triplets(triplets, triplet_dataframe)
 ###########################################
 
 
 ###########################################
-## Evaluate Results
+## Evaluate Results Distance Calculations
 #mean_dists = list()
 #mean_positions = list()
 #for i in range(n):

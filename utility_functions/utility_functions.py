@@ -1,5 +1,3 @@
-from random import random
-import string
 from time import time
 import pandas as pd
 import numpy as np
@@ -16,6 +14,8 @@ import sklearn
 from sklearn.cluster import KMeans
 import sklearn.neighbors as neighbors
 import scipy.spatial.distance as dist
+
+import matplotlib.pyplot as plt
 
 
 def preprocessing(text_data: pd.DataFrame, column_name: str) -> pd.DataFrame:
@@ -375,6 +375,74 @@ def meta_data_triplets(triplets, dataframe):
                        f"Similar: {similar_title}\n{similar_url}\n" +
                        f"Dissimilar: {disimilar_title}\n{disimilar_url}\n\n")
 
+def performance_comparison_triplets(n_list, data, dataframe):
+    performance_bf = list()
+    performance_cl = list()
+    for n in n_list:
+        #############################################
+        # random sampling
+        print(f"N samples: {n}")
+        #sample n queries randomly
+        rng = np.random.default_rng()
+        query_ids = rng.integers(low=0, high=len(data), size=n)
+        queries = data[query_ids]
+        #############################################
+
+
+        ############################################
+        #### Brute-Force FN Algo for Evaluation ####
+        k_bf = 1000 #this has to be quite large to get accurate positions in evaluation
+        start_bf = time()
+        true_results, triplets = triplets_brute_force(queries, query_ids, data, "cosine", k_bf)
+        end_bf = time()
+        time_bf = round(end_bf - start_bf, 2)
+        print(f"time bf: {time_bf}")
+        ############################################
+
+
+        ############################################
+        #### Clustering NN FN Algo ####
+        n_clusters = 5
+        k_farthest = 3
+        n_random_samples = 3000
+        results_clustering_algo , time_clustering = nn_fn_clustering(query=queries, data=data, df=dataframe,
+                                                                    nr_clusters=n_clusters, nr_farthest=k_farthest, n_random_sample=n_random_samples)
+        tr_start = time()
+        triplets = triplets_clustering(results_clustering_algo, query_ids)
+        tr_end = time()
+        triplets_time = (tr_end - tr_start)
+        time_cl = round(time_clustering +  triplets_time, 2)
+        print(f"time cl: {time_cl}")
+        print()
+        ###########################################
+        
+        performance_bf.append(time_bf)
+        performance_cl.append(time_clustering)
+
+    ######################################
+    # plot results
+    barwidth = 0.25
+    x_axis = np.arange(len(n_list))
+    cl_bar_pos = [x + barwidth/2 for x in x_axis]
+    bf_bar_pos = [x - barwidth/2 for x in x_axis]
+
+    fig, ax = plt.subplots(1,1)
+    ax.bar(cl_bar_pos, performance_cl, color ='C0', width = barwidth,
+            edgecolor ='grey', label ='clustering')
+    ax.bar(bf_bar_pos, performance_bf, color ='C1', width = barwidth,
+            edgecolor ='grey', label ='brute force')
+
+    ax.set_xlabel('Number of samples [n]')
+    ax.set_ylabel('Time [s]')
+    ax.set_xticks(x_axis,n_list)
+
+    for bars in ax.containers:
+        ax.bar_label(bars)
+
+    ax.legend()
+    plt.show()
+    ######################################
+    
 def display_all_triplets(triplets, dataframe):
     
     triplets_df = pd.DataFrame()
