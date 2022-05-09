@@ -7,10 +7,6 @@ import pandas as pd
 from utility_functions import utility_functions as utils
 from sklearn.decomposition import PCA
 
-#import sklearn
-#from sklearn.cluster import KMeans
-#import sklearn.neighbors as neighbors
-
 #############################################
 #### prepare data ####
 start_prep = time.time()
@@ -87,7 +83,7 @@ triplets = utils.triplets_clustering(results_clustering_algo, query_ids)
 ###########################################
 # Evaluate Triplets
 #utils.display_one_triplet(triplets, triplet_dataframe)
-#utils.meta_data_triplets(triplets, triplet_dataframe)
+utils.meta_data_triplets(triplets, triplet_dataframe)
 ###########################################
 
 
@@ -122,96 +118,3 @@ triplets = utils.triplets_clustering(results_clustering_algo, query_ids)
 
 #plt.clf()
 ######################################
-
-
-#print("query:", query_ids)
-#print("sklearn:\n", indices[0][1:])
-#print("my brute force:\n", full_information[0][0])
-
-# create triplets with clustering and gt tree
-# displays one randomly chosen triplet
-#utils.display_one_triplet(triplets, triplet_dataframe)
-
-# displays all triplets
-# utils.display_all_triplets(triplets, triplet_dataframe)
-
-# displays first sample with all k simialar and dissimilar samples
-#utils.display_all_dis_similar(query_ids, full_information, triplet_dataframe)
-
-
-
-
-
-
-
-
-
-#nr_clusters = 5
-#print(f"################ {nr_clusters} #############")
-#start_sk = time.time()
-
-#cluster_algo = KMeans(n_clusters=nr_clusters)
-#cluster_algo = cluster_algo.fit(stand_sentence_embeddings)
-#labels = cluster_algo.labels_
-
-#triplet_dataframe["label"] = labels
-#triplet_dataframe = triplet_dataframe.astype({"label": "str"})
-
-#end_clustering = time.time()
-
-#print("Min number of samples in any cluster:", min(triplet_dataframe["label"].value_counts()))
-#print(f"Time needed for clustering: {round(end_clustering - start_sk, 2)}s")
-
-##utils.plot_clustering(triplet_dataframe,"Sentence_Transformer", "PCA", f"KMeans - {nr_clusters} Clusters")
-
-##### sklearn nn ####
-#n_neighbors = 5
-
-#nn = neighbors.NearestNeighbors(n_neighbors=n_neighbors+1, metric="cosine")
-#nn.fit(stand_sentence_embeddings)
-
-#nn_dists, nn_indices = nn.kneighbors(queries)
-
-
-###### compute cluster centers with maxium distances ####
-#dists_to_cluster_centers = cluster_algo.transform(queries)
-
-#argsort = np.argsort(dists_to_cluster_centers, axis=1)
-
-##shuffled = rng.permuted(argsort[:,-3:], axis=1)
-##random_clusters = shuffled[:,0]
-#nr_farthest = 3
-#farthest_clusters = argsort[:,-nr_farthest:]
-
-#farthest_clustering = list()
-
-#for i in range(n):
-#    string_labels = [str(cl) for cl in farthest_clusters[i]]
-#    all_rows_of_cluster = triplet_dataframe.loc[triplet_dataframe["label"].isin(string_labels)]
-
-#    # indices_farthest_cluster = [np.array(triplet_dataframe.loc[triplet_dataframe["label"] == str(cluster)].index) for cluster in farthest_clusters]
-#    random_samples = 3000
-#    indices_farthest_cluster = np.array(all_rows_of_cluster.index)
-#    random_sampled = rng.permuted(indices_farthest_cluster)[:random_samples]
-
-#    clustering_info = utils.calc_distances(queries[i].reshape(1,-1), stand_sentence_embeddings[random_sampled], "cosine", n_neighbors)
-
-#    max_k_ids = clustering_info[0][2].astype("int")
-#    max_k_dists = clustering_info[0][3]
-
-#    max_k_ids_df = random_sampled[max_k_ids]
-
-#    farthest_clustering.append((max_k_ids_df, max_k_dists, max_k_ids))
-
-#end_sk = time.time()
-#print(f"Time needed for sklearn nn&fn + clustering {round(end_sk - start_sk, 2)}s")
-#print("results cluster center fn")
-#for i in farthest_clustering:
-#    print(i)
-#print()
-#print(triplet_dataframe.loc[max_k_ids_df])
-
-#print("results brute force fn")
-#for i in true_full_information:
-#    print(i[2])
-#    print(i[3])

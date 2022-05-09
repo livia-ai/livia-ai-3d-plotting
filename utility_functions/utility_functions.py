@@ -2,7 +2,6 @@ from time import time
 import pandas as pd
 import numpy as np
 import nltk
-
 #nltk.download('stopwords')
 from nltk.corpus import stopwords
 
@@ -13,7 +12,6 @@ import altair_saver as asav
 import sklearn
 from sklearn.cluster import KMeans
 import sklearn.neighbors as neighbors
-import scipy.spatial.distance as dist
 
 import matplotlib.pyplot as plt
 
@@ -442,7 +440,7 @@ def performance_comparison_triplets(n_list, data, dataframe):
     ax.legend()
     plt.show()
     ######################################
-    
+
 def display_all_triplets(triplets, dataframe):
     
     triplets_df = pd.DataFrame()
