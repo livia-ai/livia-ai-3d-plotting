@@ -1,12 +1,11 @@
-import numpy as np
-import pandas as pd
 from time import time
 
+import numpy as np
+import pandas as pd
 import sklearn
 from sklearn.cluster import KMeans
 import sklearn.neighbors as neighbors
-
-import pip
+import matplotlib.pyplot as plt
 
 def generate_triplets(method:str, sentence_embeddings:np.array, ids:np.array, n:int):
     """
@@ -28,7 +27,7 @@ def generate_triplets(method:str, sentence_embeddings:np.array, ids:np.array, n:
     if method == "clustering":
 
         print(f"{n} triplets are generated. This may take a while ... ")
-        triplets = triplets_clustering(query=query_ses, 
+        triplets, _, _ = triplets_clustering(query=query_ses, 
                                     query_ids=query_ids,
                                     data=sentence_embeddings, 
                                     ids=ids,
@@ -38,7 +37,7 @@ def generate_triplets(method:str, sentence_embeddings:np.array, ids:np.array, n:
     elif method == "brute-force":
         print(f"{n} triplets are generated. This may take a while ... ")
 
-        triplets = triplets_brute_force(query=query_ses,
+        triplets, _, _ = triplets_brute_force(query=query_ses,
                                         query_ids=query_ids,
                                         embeddings=sentence_embeddings,
                                         ids=ids,
@@ -56,11 +55,12 @@ def generate_triplets(method:str, sentence_embeddings:np.array, ids:np.array, n:
     print("Done!")
 
     return triplets
+
 def triplets_clustering(query, query_ids, data, ids, n, rng, nr_clusters=5, nr_farthest=3, n_random_sample=3000):
     
     ################################
     # clustering
-    start_clustering = time()
+    start = time()
 
     cluster_algo = KMeans(n_clusters=nr_clusters)
     cluster_algo = cluster_algo.fit(data)
@@ -69,9 +69,6 @@ def triplets_clustering(query, query_ids, data, ids, n, rng, nr_clusters=5, nr_f
     df = pd.DataFrame({"index":ids, "label":labels})
     df = df.astype({"label": "str"})
     df = df.astype({"index": "str"})
-
-    end_clustering = time()
-    clustering_time = round(end_clustering - start_clustering, 2)
     ################################
 
 
@@ -116,7 +113,6 @@ def triplets_clustering(query, query_ids, data, ids, n, rng, nr_clusters=5, nr_f
         results.append((nn_indices[i][1:], nn_dists[i][1:], max_k_ids_df, max_k_dists))
         museum_id_results.append((ids[nn_indices[i][1:]], nn_dists[i][1:] ,ids[max_k_ids_df], max_k_dists))
 
-    end = time()
     ################################
 
 
@@ -129,10 +125,15 @@ def triplets_clustering(query, query_ids, data, ids, n, rng, nr_clusters=5, nr_f
     #print(df_clusters)
     ################################
 
-    return list(zip(museum_query_ids, sim, disim))
+    end = time()
+    time_needed = round(end - start, 2)
+
+    return list(zip(museum_query_ids, sim, disim)), results, time_needed
 
 def triplets_brute_force(query, query_ids, embeddings, ids,  rng, k=5):
     
+    start = time()
+
     neighborhoods = np.array(calc_distances(query, embeddings, "cosine", k))
 
     res = list()
@@ -149,8 +150,11 @@ def triplets_brute_force(query, query_ids, embeddings, ids,  rng, k=5):
         triplets.append([ids[query_ids[i]],ids[int(min_k_ids[min_id])], ids[int(max_k_ids[max_id])]])
         
         i += 1
-        
-    return triplets
+
+    end = time()
+    time_needed = round(end - start, 2)
+
+    return triplets, neighborhoods, time_needed
 
 def calc_distances(query, data, metric, k):
     
@@ -193,3 +197,142 @@ def calc_distances(query, data, metric, k):
             results.append((min_k_ids, min_k_dists, max_k_ids, max_k_dists))
 
         return results
+
+def precision_comparison_histogram(sentence_embeddings:np.array, ids:np.array, n:int,
+                                   n_clusters:int = 5, k_farthest_clusters:int = 3, n_random_samples:int = 3000):
+    
+    #sample n queries randomly
+    rng = np.random.default_rng()
+    query_ids = rng.integers(low=0, high=len(sentence_embeddings), size=n)
+    query_ses = sentence_embeddings[query_ids]
+
+    ###########################################
+    # perform nn/fn clustering algorithm
+    print(f"{n} triplets are generated using the clustering algorithm")
+    triplets_cl, res_cl, time_cl = triplets_clustering(query=query_ses, 
+                                            query_ids=query_ids,
+                                            data=sentence_embeddings, 
+                                            ids=ids, n=n, rng=rng,
+                                            nr_clusters=n_clusters,
+                                            nr_farthest=k_farthest_clusters,
+                                            n_random_sample=n_random_samples)
+    ###########################################
+
+
+    ###########################################
+    # perform brute-force algorithm
+    k_bf = 1000
+    print(f"{n} triplets are generated using the brute-force algorithm")
+    triplets_bf, res_bf, time_bf = triplets_brute_force(query=query_ses,
+                                            query_ids=query_ids,
+                                            embeddings=sentence_embeddings,
+                                            ids=ids,
+                                            rng=rng,
+                                            k=k_bf)
+    ###########################################
+
+
+    ###########################################
+    # Evaluate Results Distance Calculations
+    print("Compare Results...")
+    mean_dists = list()
+    mean_positions = list()
+    for i in range(n):
+        max_ids_cl = res_cl[i][2]
+        max_dists_cl = res_cl[i][3]
+
+        max_ids_bf = res_bf[i][2]
+        max_dists_bf = res_bf[i][3]
+
+        performance_cluster_algo = [np.argwhere(max_ids_bf == idx) for idx in max_ids_cl]
+        #print(performance_cluster_algo)
+        sum_pos = 0
+        for i in performance_cluster_algo:
+            if len(i) == 0:
+                sum_pos -= 10
+            else:
+                sum_pos += i[0][0]
+
+        mean_positions.append(abs(sum_pos/len(performance_cluster_algo) - k_bf))
+        mean_dists.append((np.mean(max_dists_cl),np.mean(max_dists_bf[-6:]) ))
+    ######################################
+
+    # plot results
+    fig, ax = plt.subplots(1,1, figsize=(20,10))
+
+    plt.hist(mean_positions)
+    plt.suptitle(f"Precision Comparison Histogram - Farthest Neighbor Problem", fontsize=16)
+    plt.title(f"Clustering Algorithm Parameters: n_clusters={n_clusters},  k_farthest={k_farthest_clusters}, n_random_samples={n_random_samples} \n Performance: Clustering={time_cl}s, Brute-Force={time_bf}s")
+    plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
+    ax.set_xlabel("Average Deviation from Optimal Farthest Neighbor")
+    ax.set_ylabel("Frequency")
+    plt.savefig(f'precision_comparison_histogram.png')
+    plt.show()
+
+def performance_comparison_plot(sentence_embeddings:np.array, ids:np.array, n_list:list=[1,10,100,500],
+                                   n_clusters:int = 5, k_farthest_clusters:int = 3, n_random_samples:int=3000):
+
+    performance_bf = list()
+    performance_cl = list()
+    for n in n_list:
+        print(f"Calculating n={n}")
+        #sample n queries randomly
+        rng = np.random.default_rng()
+        query_ids = rng.integers(low=0, high=len(sentence_embeddings), size=n)
+        query_ses = sentence_embeddings[query_ids]
+
+        ###########################################
+        # perform nn/fn clustering algorithm
+        #print(f"{n} triplets are generated using the clustering algorithm")
+        triplets_cl, res_cl, time_cl = triplets_clustering(query=query_ses, 
+                                                query_ids=query_ids,
+                                                data=sentence_embeddings, 
+                                                ids=ids, n=n, rng=rng,
+                                                nr_clusters=n_clusters,
+                                                nr_farthest=k_farthest_clusters,
+                                                n_random_sample=n_random_samples)
+        ###########################################
+
+
+        ###########################################
+        # perform brute-force algorithm
+        k_bf = 5
+        #print(f"{n} triplets are generated using the brute-force algorithm")
+        triplets_bf, res_bf, time_bf = triplets_brute_force(query=query_ses,
+                                                query_ids=query_ids,
+                                                embeddings=sentence_embeddings,
+                                                ids=ids,
+                                                rng=rng,
+                                                k=k_bf)
+        ###########################################
+        
+        performance_bf.append(time_bf)
+        performance_cl.append(time_cl)
+
+
+    ######################################
+    # plot results
+    barwidth = 0.25
+    x_axis = np.arange(len(n_list))
+    cl_bar_pos = [x + barwidth/2 for x in x_axis]
+    bf_bar_pos = [x - barwidth/2 for x in x_axis]
+
+    fig, ax = plt.subplots(1,1, figsize=(10,10))
+    ax.bar(cl_bar_pos, performance_cl, color ='C0', width = barwidth,
+            edgecolor ='grey', label ='clustering')
+    ax.bar(bf_bar_pos, performance_bf, color ='C1', width = barwidth,
+            edgecolor ='grey', label ='brute force')
+
+    ax.set_xlabel('Number of samples [n]')
+    ax.set_ylabel('Time [s]')
+    ax.set_xticks(x_axis,n_list)
+
+    for bars in ax.containers:
+        ax.bar_label(bars)
+
+    ax.legend()
+    ax.title('Performance Comparison: Brute-Force vs Clustering', fontsize=16)
+
+    plt.savefig(f'performance_comparison_plot.png')
+    plt.show()
+    ######################################
