@@ -1,3 +1,10 @@
+## Module: livia
+The folder "livia" contains a standalone module containing the main functions of this project. 
+It is structured as two classes in two separate Python files:
+- **Embedding:** provides all functions necessary to generate sentence embedding given a dataframe containing text data and a selection of columns
+
+- **Triplet:** provides all functions needed to generate triplets of the form (sample, similar, disimilar) given sentence embeddings of a dataset
+
 ## Scripts and their functionalities
 - **basic_3d_plotting.py**
   
