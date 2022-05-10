@@ -1,4 +1,19 @@
+# Triplet
 numpy 
 sklearn
 pandas
 matplotlib
+
+# Embedding
+pandas
+numpy
+nltk
+sentence-transformers
+sklearn
+
+# Total
+numpy 
+sklearn
+pandas
+matplotlib
+nltk
