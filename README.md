@@ -5,33 +5,32 @@ It is structured as two classes in two separate Python files:
 
 - **Triplet:** provides all functions needed to generate triplets of the form (sample, similar, disimilar) given sentence embeddings of a dataset
 
-## Scripts and their functionalities
-- **basic_3d_plotting.py**
-  
-  Python Script to create 3D plot of sentence embedding with Plotly. <br>
-  Works now with all 3 datasets, **down projected version of all sentence embeddings(with museum-id for every sample) is on google drive.**
+## Folders and their Scripts
+- **0_data_preparation**
 
-- **clustering.py**
+  Contains a script that generates embeddings and one that downprojects existing embeddings to compress it
+
+- **1_datasets_3d_plots**
+
+  Python Script to create 3D plot of sentence embedding of a dataset with Plotly.
+
+- **2_bar_plots_column_counts**
+
+  Create bar plots that show value counts of one dataframe column.
+
+- **3_clustering**
 
   Performs k-means clustering on n dimensional sentence embedding.
+
+- **4_combined_dataset**
+
+  Not yet functional. <br>
+  Tries takes combined dataset and tries to analyse results
   
-- **triplets.py** 
+- **5_triplet_generation** 
   
   Generates triplets(original sample, similar sample, dissimilar sample) given a subset of the the sentence embeddings. <br>
   Also contains some functions for visualization.
-  
-- **combine_data.py**
-
-  Not yet functional. <br>
-  Tries to combine all 3 datasets into one big one and peform the same tasks as above.
-  
-- **downproject_se.py**
-
-  Loads full sentence embedding, down-projects it to d dimensions and saves ut with the museum-id for every sample .
-
-- **bar_plots_counts.py**
-
-  Create bar plots that show value counts of one dataframe column.
  
 
 ## Some minor enhancements/questions
