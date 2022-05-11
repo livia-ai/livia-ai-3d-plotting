@@ -1,4 +1,4 @@
-## Module: livia
+## Package: livia
 The folder "livia" contains a standalone module containing the main functions of this project. 
 It is structured as two classes in two separate Python files:
 - **Embedding:** provides all functions necessary to generate sentence embedding given a dataframe containing text data and a selection of columns
