@@ -15,7 +15,7 @@ class Embedding():
         :dataframe: loaded data as pandas DataFrame
         :emb_column_names: list of column  namess that should be considered for the embedding
         :id_column_name: name of sample identifier column
-        
+
         returns: embeddings
         """
 
