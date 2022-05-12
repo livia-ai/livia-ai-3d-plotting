@@ -1,51 +1,41 @@
-from pyrsistent import freeze
 import livia
-import livia.embedding as emb
-import livia.triplet as tr
-
-from pip._internal.operations import freeze
-
-#######################################
-# triplets
-
-import numpy as np
-import livia.triplet as tr
-
-embedding_path = 'data/se_wm_100d.csv'
-# load sentence embedding 100d
-sentence_embeddings = np.loadtxt(embedding_path, delimiter=',', usecols=range(1,101))
-# load museum ids
-ids = np.loadtxt(embedding_path, delimiter=',', usecols=0, dtype=str)
-
-n = 10
-
-# create instance of class Tiplet
-triplet = tr.Triplet(sentence_embeddings, ids)
-
-# generate triplets
-triplet.generate_triplets(method="clustering",
-                          n=n)
-
-# compare precision: brute-force vs clustering algo
-triplet.precision_comparison_histogram(n=n,
-                                       n_clusters=5, 
-                                       k_farthest_clusters=3, 
-                                       n_random_samples=3000)
-
-# compare performance: brute-force vs clustering algo
-triplet.performance_comparison_plot(n_list=[1,10,100,300])
-#######################################
+import livia.embedding as embedding
+import livia.triplet as triplet
 
 
 #######################################
 ## embedding
-import pandas as pd
-import livia.embedding as emb
+#import pandas as pd
 
-embedding = emb.Embedding()
+#bel_data = pd.read_csv("data/belvedere.csv")
+#column_names_embedding = ["Title", "Description"]
+#column_name_id = "Identifier"
 
-wm_data = pd.read_csv("data/belvedere.csv")
-emb_columns = ["Title", "Description"]
-id_column = "Identifier"
-embedding_dimensions = 100
-embedding.generate_embedding(wm_data, emb_columns, id_column, embedding_dimensions)
+#bel_embedding = embedding.compute_embedding(bel_data, column_names_embedding, column_name_id)
+#embedding.save_to_csv(bel_embedding, "bel_embedding")
+
+#d = 3
+#bel_3d_embedding = embedding.pca_reduce(bel_embedding, d)
+#embedding.save_to_csv(bel_3d_embedding, "bel_embedding_3d")
+
+# load embedding
+#bel_embedding = embedding.load_csv("bel_embedding.csv")
+
+
+#######################################
+## triplets
+
+n = 10
+
+
+## generate triplets
+#bel_triplets = triplet.generate_triplets(bel_embedding, method="brute-force", n=n)
+
+## compare precision: brute-force vs clustering algo
+#triplet.precision_comparison_histogram(bel_embedding, 100)
+
+
+# compare performance: brute-force vs clustering algo
+triplet.performance_comparison_plot(bel_embedding, n_list=[1,10,100,300])
+
+########################################
