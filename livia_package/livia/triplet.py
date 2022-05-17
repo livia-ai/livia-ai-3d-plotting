@@ -120,7 +120,6 @@ def triplets_clustering(embedding, query, query_ids, n, rng, nr_clusters=5, nr_f
 
     ################################
 
-
     ################################
     #create triplets
     museum_query_ids = embedding.identifier[query_ids]
@@ -151,7 +150,7 @@ def triplets_brute_force(embedding, query, query_ids, rng, k=5):
 
         res.append((int(min_k_ids[min_id]), min_k_dists[min_id],
                     int(max_k_ids[max_id]), max_k_dists[max_id]))
-        
+
         triplets.append([embedding.identifier[query_ids[i]], embedding.identifier[int(min_k_ids[min_id])], embedding.identifier[int(max_k_ids[max_id])]])
         
         i += 1

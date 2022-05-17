@@ -4,7 +4,7 @@ with open("README.md", mode="r", encoding="utf-8") as readme_file:
     readme = readme_file.read()
         
 setup(name='livia',
-      version='0.1.4',
+      version='0.1.7',
       description='Linking Viennese Art through AI',
       long_description = readme,
       long_description_content_type = "text/markdown",
@@ -18,7 +18,8 @@ setup(name='livia',
 		"numpy",
 		"pandas",
 		"scikit-learn",
-		"sentence-transformers"],
+		"sentence-transformers",
+        "plotly"],
       classifiers=[
         "Programming Language :: Python :: 3"
     ],

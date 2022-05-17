@@ -1,3 +1,5 @@
+from re import X
+from turtle import color
 import pandas as pd
 import numpy as np
 import nltk
@@ -5,7 +7,7 @@ import nltk
 from nltk.corpus import stopwords
 from sentence_transformers import SentenceTransformer
 from sklearn.decomposition import PCA
-
+import plotly.express as px
 
 class Embedding:
     def __init__(self, embedding, identifier):
@@ -16,7 +18,7 @@ class Embedding:
 def save_to_csv(embedding:Embedding, file_name:str):
     format = ['%s']
     format += ['%.18e']*(embedding.shape[1])
-    np.savetxt(file_name+".csv",np.concatenate( [embedding.identifier, embedding.embedding], axis=1), delimiter=',', fmt=format)
+    np.savetxt(file_name+".csv",np.concatenate([embedding.identifier.reshape(-1,1), embedding.embedding], axis=1, dtype=object), delimiter=',', fmt=format)
 
 def load_csv(path:str):
     identifier = np.loadtxt(path, delimiter=',', usecols=0, dtype=str)
@@ -62,15 +64,16 @@ def compute_embedding(dataframe:pd.DataFrame, emb_column_names:list, id_column_n
     embedding_object = Embedding(embedding, identifier)
     return embedding_object
 
-def pca_reduce(embedding:Embedding, dimensions:int):
+def pca_reduce(embedding:Embedding, dimensions:int, standardize=True):
 
     # extract computed sentence embeddings
-    matrix = embedding.embedding
-    # standardize the stence embeddings
-    stand_embedding = (matrix - np.mean(matrix, axis=0)) / np.std(matrix, axis=0)
+    stand_embedding = embedding.embedding
+    if standardize:
+        # standardize the stence embeddings
+        stand_embedding = (stand_embedding - np.mean(stand_embedding, axis=0)) / np.std(stand_embedding, axis=0)
     # perform pca
     pca = PCA(n_components=dimensions)
-    downprojected_embedding = pca.fit_transform(stand_embedding)
+    downprojected_embedding = pca.fit_transform(stand_embedding).astype(np.float64)
 
     # extract identifier
     identifier = embedding.identifier
@@ -100,3 +103,47 @@ def preprocessing(text_data: pd.DataFrame, column_name: str) -> pd.DataFrame:
         i += 1
         
     return helper
+
+def plot_3d(embedding_3d:np.array, meta_data:pd.DataFrame, id_column, title_column, color_column, info_columns:list, title_plot="3D Plot of Embedding"):
+
+    # make column list is unique
+    column_list = [id_column, title_column, color_column] + info_columns
+    columns_unique = list(dict.fromkeys(column_list))
+    
+    df = meta_data[columns_unique]
+
+    # just in case order the 
+    order_of_embedding = np.where(embedding_3d.identifier == df[id_column])
+    embedding_matrix_3d = embedding_3d.embedding[order_of_embedding]
+
+    df = df.copy()
+    # for better visualization crop title
+    length = 75
+    df[title_column] = df[title_column].apply(lambda x: str(x)[:length] if len(str(x))>length else str(x))
+    df["x"] = embedding_matrix_3d[:,0]
+    df["y"] = embedding_matrix_3d[:,1]
+    df["z"] = embedding_matrix_3d[:,2]
+    df.fillna('NaN', inplace=True)
+
+    fig = px.scatter_3d(df, 
+                    x='x', y='y', z='z', 
+                    color=color_column, 
+                    hover_name=title_column, # what to show when hovered over
+                    hover_data=[id_column] + info_columns,
+                    width=2500, height=1250, # adjust height and width
+                    title=title_plot)
+    
+    # make set size for legend and hover label
+    fig.update_layout(showlegend=True,
+                     legend = dict(
+                            font = dict(size = 10)
+                            ), 
+                    hoverlabel=dict(
+                            font_size=10,
+                            )
+                    )
+
+    # set marker size
+    fig.update_traces(marker_size = 3)
+    fig.show()
+
