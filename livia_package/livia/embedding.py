@@ -104,19 +104,32 @@ def preprocessing(text_data: pd.DataFrame, column_name: str) -> pd.DataFrame:
         
     return helper
 
-def plot_3d(embedding_3d:np.array, meta_data:pd.DataFrame, id_column, title_column, color_column, info_columns:list, title_plot="3D Plot of Embedding"):
+def plot_3d(embedding_3d:np.array, meta_data:pd.DataFrame, n:int, id_column, title_column, color_column, info_columns:list, title_plot="3D Plot of Embedding"):
+
 
     # make column list is unique
     column_list = [id_column, title_column, color_column] + info_columns
     columns_unique = list(dict.fromkeys(column_list))
     
     df = meta_data[columns_unique]
+    df = df.astype({id_column: "str"})
+    df = df.copy()
 
     # just in case order the 
     order_of_embedding = np.where(embedding_3d.identifier == df[id_column])
     embedding_matrix_3d = embedding_3d.embedding[order_of_embedding]
 
-    df = df.copy()
+
+    embedding_length = len(embedding_matrix_3d)
+    # if specified take random subsample of dataset
+    if n != None:
+        if n < embedding_length:
+            rng = np.random.default_rng()
+            id_list = list(range(embedding_length))
+            sample_ids = rng.choice(id_list, size=n, replace=False)
+            embedding_matrix_3d = embedding_matrix_3d[sample_ids]
+            df = df.copy().loc[sample_ids]
+
     # for better visualization crop title
     length = 75
     df[title_column] = df[title_column].apply(lambda x: str(x)[:length] if len(str(x))>length else str(x))

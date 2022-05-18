@@ -5,21 +5,26 @@ import livia.triplet as triplet
 
 #######################################
 ## embedding
+mak_1 = pd.read_csv("data/mak/mak_1.csv", low_memory=False)
+mak_2 = pd.read_csv("data/mak/mak_2.csv", low_memory=False)
+mak_3 = pd.read_csv("data/mak/mak_3.csv", low_memory=False)
+mak = pd.concat([mak_1, mak_2, mak_3])
 
-bel_data = pd.read_csv("data/belvedere.csv")
-#column_names_embedding = ["Title", "Description"]
-#column_name_id = "Identifier"
+column_names_embedding = ["title", "object_name", "description"]
+column_name_id = "priref"
 
-#bel_embedding = embedding.compute_embedding(bel_data, column_names_embedding, column_name_id)
-#embedding.save_to_csv(bel_embedding, "bel_embedding")
+mak_embedding = embedding.compute_embedding(mak, column_names_embedding, column_name_id)
+embedding.save_to_csv(mak_embedding, "mak_embedding_motiv")
 
-# load embedding
-bel_embedding = embedding.load_csv("bel_embedding.csv")
-
-## pca reduce
+# pca reduce
 d = 3
-bel_embedding_3d = embedding.pca_reduce(bel_embedding, d)
-#embedding.save_to_csv(bel_3d_embedding, "bel_embedding_3d")
+mak_embedding_3d = embedding.pca_reduce(mak_embedding, d)
+embedding.save_to_csv(mak_embedding_3d, "mak_embedding_motiv_3d")
+
+# pca reduce
+d = 100
+mak_embedding_100d = embedding.pca_reduce(mak_embedding, d)
+embedding.save_to_csv(mak_embedding_100d, "mak_embedding_motiv_100d")
 
 #######################################
 ## triplets
@@ -37,13 +42,16 @@ bel_embedding_3d = embedding.pca_reduce(bel_embedding, d)
 ########################################
 
 
-########################################
-# 3d plot
-print(bel_data.columns)
+#########################################
+### 3d plot
 
-id_column_name = "Identifier"
-title_column_name = "Title"
-color_column_name = "ClassificationName"
-info_column_names = ["Creator", "ClassificationName"]
-embedding.plot_3d(bel_embedding_3d, bel_data, id_column_name, title_column_name, color_column_name, info_column_names)
+#df_data = pd.read_csv("data/wm/wien_museum.csv")
+#embedding_3d = embedding.load_csv("wm_embedding_motiv_3d.csv")
+
+#id_column_name = "id"
+#title_column_name = "title"
+#color_column_name = "subjects"
+#info_column_names = ["districts", "subjects"]
+#n = 10000
+#embedding.plot_3d(embedding_3d, df_data, n, id_column_name, title_column_name, color_column_name, info_column_names)
 
