@@ -8,6 +8,7 @@ from nltk.corpus import stopwords
 from sentence_transformers import SentenceTransformer
 from sklearn.decomposition import PCA
 import plotly.express as px
+from tqdm import tqdm
 
 class Embedding:
     def __init__(self, embedding, identifier):
@@ -56,7 +57,7 @@ def compute_embedding(dataframe:pd.DataFrame, emb_column_names:list, id_column_n
     model = SentenceTransformer('distiluse-base-multilingual-cased-v1')
     # generate sentence embedding
     print("-> Sentence embedding is generated:")
-    embedding = model.encode(text_list, show_progress_bar=True, device="cpu")
+    embedding = model.encode(text_list, show_progress_bar=True)
 
     # create embedding object containing vectors and identifiers
     identifier = df_filtered[id_column_name].to_numpy().reshape((-1,1))
@@ -104,8 +105,11 @@ def preprocessing(text_data: pd.DataFrame, column_name: str) -> pd.DataFrame:
         
     return helper
 
-def plot_3d(embedding_3d:np.array, meta_data:pd.DataFrame, n:int, id_column, title_column, color_column, info_columns:list, title_plot="3D Plot of Embedding"):
+def plot_3d(embedding_to_plot:Embedding, meta_data:pd.DataFrame, n:int, id_column, title_column, color_column, info_columns:list, title_plot="3D Plot of Embedding"):
 
+
+    if embedding_to_plot.shape[1] > 3:
+        embedding_to_plot = pca_reduce(embedding_to_plot,3)
 
     # make column list is unique
     column_list = [id_column, title_column, color_column] + info_columns
@@ -116,8 +120,8 @@ def plot_3d(embedding_3d:np.array, meta_data:pd.DataFrame, n:int, id_column, tit
     df = df.copy()
 
     # just in case order the 
-    order_of_embedding = np.where(embedding_3d.identifier == df[id_column])
-    embedding_matrix_3d = embedding_3d.embedding[order_of_embedding]
+    order_of_embedding = np.where(embedding_to_plot.identifier == df[id_column])
+    embedding_matrix_3d = embedding_to_plot.embedding[order_of_embedding]
 
 
     embedding_length = len(embedding_matrix_3d)
@@ -133,6 +137,7 @@ def plot_3d(embedding_3d:np.array, meta_data:pd.DataFrame, n:int, id_column, tit
     # for better visualization crop title
     length = 75
     df[title_column] = df[title_column].apply(lambda x: str(x)[:length] if len(str(x))>length else str(x))
+    df[color_column] = df[color_column].apply(lambda x: str(x)[:100] if len(str(x))>100 else str(x))
     df["x"] = embedding_matrix_3d[:,0]
     df["y"] = embedding_matrix_3d[:,1]
     df["z"] = embedding_matrix_3d[:,2]
@@ -143,7 +148,7 @@ def plot_3d(embedding_3d:np.array, meta_data:pd.DataFrame, n:int, id_column, tit
                     color=color_column, 
                     hover_name=title_column, # what to show when hovered over
                     hover_data=[id_column] + info_columns,
-                    width=2500, height=1250, # adjust height and width
+                    width=2000, height=850, # adjust height and width
                     title=title_plot)
     
     # make set size for legend and hover label
@@ -153,7 +158,8 @@ def plot_3d(embedding_3d:np.array, meta_data:pd.DataFrame, n:int, id_column, tit
                             ), 
                     hoverlabel=dict(
                             font_size=10,
-                            )
+                            ),
+                    title_x=0.5
                     )
 
     # set marker size
