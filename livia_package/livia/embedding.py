@@ -105,11 +105,11 @@ def preprocessing(text_data: pd.DataFrame, column_name: str) -> pd.DataFrame:
         
     return helper
 
-def plot_3d(embedding_to_plot:Embedding, meta_data:pd.DataFrame, n:int, id_column, title_column, color_column, info_columns:list, title_plot="3D Plot of Embedding"):
+def plot_3d(embedding_to_plot:Embedding, meta_data:pd.DataFrame, n:int, id_column, title_column, color_column, info_columns:list, title_plot="3D Plot of Embedding", standardize=False):
 
 
     if embedding_to_plot.shape[1] > 3:
-        embedding_to_plot = pca_reduce(embedding_to_plot,3)
+        embedding_to_plot = pca_reduce(embedding_to_plot,3, standardize=standardize)
 
     # make column list is unique
     column_list = [id_column, title_column, color_column] + info_columns

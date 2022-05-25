@@ -3,6 +3,7 @@ from livia import embedding
 from livia import triplet
 import pandas as pd
 from time import time
+
 #### Compute Embedding ####
 ## wm
 #museum = "wm"
