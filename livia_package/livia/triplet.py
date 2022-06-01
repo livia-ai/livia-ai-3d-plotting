@@ -10,20 +10,40 @@ import sklearn.neighbors as neighbors
 
 from livia.embedding import Embedding
 
+from itertools import permutations
 
 def sample_n_queries(embedding:np.array, n:int, rng):
     query_ids = rng.integers(low=0, high=len(embedding), size=n)
     query_ses = embedding[query_ids]
     return query_ids, query_ses
 
+def uniqueness_triplets(triplets):
+
+    control = set()
+
+    triplets_unique = list()
+
+    removed=0
+    for triplet in triplets:
+        if triplet not in control:
+            triplets_unique.append(triplet)
+        else:
+            removed += 1
+
+        control.update(list(permutations(triplet)))
+    
+    return triplets_unique, removed
+
 def generate_triplets(embedding:Embedding, method:str, n:int, seed:int=None):
     """
     :method: the method used to calculate the triplets -> "clustering" or "brute-force"
+
     :sentence_embeddings: the embeddings used to calculate the distances
+
     :ids: museum ids in the same order as the sentence embeddings
+
     :n: how many triplets should be calculated
 
-    saves: the generated triplets in a txt file
     returns: the generated triplets as a list of tuples
     """
 
@@ -34,7 +54,6 @@ def generate_triplets(embedding:Embedding, method:str, n:int, seed:int=None):
     query_ids, query_ses = sample_n_queries(embedding.embedding, n, rng)
 
     if method == "clustering":
-
         print(f"{n} triplets are generated. This may take a while ... ")
         triplets, _, _ = triplets_clustering(embedding=embedding,
                                              query=query_ses, 
@@ -43,7 +62,6 @@ def generate_triplets(embedding:Embedding, method:str, n:int, seed:int=None):
                                              rng=rng)
                     
     elif method == "brute-force":
-
         print(f"{n} triplets are generated. This may take a while ... ")
         triplets, _, _ = triplets_brute_force(embedding=embedding,
                                               query=query_ses,
@@ -52,15 +70,20 @@ def generate_triplets(embedding:Embedding, method:str, n:int, seed:int=None):
                 
     else:
         print("Please specify a valid triplet generation method!")
-
+        return None
+    
+    ## save triplets in txt file
     #with open("triplets.txt", "w") as txt:
     #    txt.write("sample_id,similar_id,dissimilar_id\n")
     #    for triplet in triplets:
     #        ori, sim, dis = triplet
     #        txt.write(f"{ori},{sim},{dis}\n")
-    print("Done!")
 
-    return triplets
+    triplets_unique, removed = uniqueness_triplets(triplets)
+
+    print(f"{removed} triplets have been removed to preserve uniqueness")
+    print(f"{n-removed} triplets are returned")
+    return triplets_unique
 
 def triplets_clustering(embedding, query, query_ids, n, rng, nr_clusters=5, nr_farthest=3, n_random_sample=3000):
     
@@ -116,7 +139,7 @@ def triplets_clustering(embedding, query, query_ids, n, rng, nr_clusters=5, nr_f
 
 
         results.append((nn_indices[i][1:], nn_dists[i][1:], max_k_ids_df, max_k_dists))
-        museum_id_results.append((embedding.identifier[nn_indices[i][1:]], nn_dists[i][1:] ,embedding.identifier[max_k_ids_df], max_k_dists))
+        museum_id_results.append([embedding.identifier[nn_indices[i][1:]], nn_dists[i][1:] ,embedding.identifier[max_k_ids_df], max_k_dists])
 
     ################################
 
@@ -124,8 +147,12 @@ def triplets_clustering(embedding, query, query_ids, n, rng, nr_clusters=5, nr_f
     #create triplets
     museum_query_ids = embedding.identifier[query_ids]
     museum_id_results = np.array(museum_id_results)
-    sim = rng.permuted(museum_id_results[:,0], axis=1)[:,0]
-    disim = museum_id_results[:,2][:,-1]
+    sim = rng.permuted(np.stack(museum_id_results[:,0]), axis=1)[:,0]
+
+    min_length = min([len(i) for i in museum_id_results[:,2]])
+    trimmed = [i[-min_length:] if len(i)>min_length else i for i in museum_id_results[:,2]]
+
+    disim = np.stack(trimmed)[:,-1]
     #print(df_clusters)
     ################################
 
@@ -151,7 +178,7 @@ def triplets_brute_force(embedding, query, query_ids, rng, k=5):
         res.append((int(min_k_ids[min_id]), min_k_dists[min_id],
                     int(max_k_ids[max_id]), max_k_dists[max_id]))
 
-        triplets.append([embedding.identifier[query_ids[i]], embedding.identifier[int(min_k_ids[min_id])], embedding.identifier[int(max_k_ids[max_id])]])
+        triplets.append((embedding.identifier[query_ids[i]], embedding.identifier[int(min_k_ids[min_id])], embedding.identifier[int(max_k_ids[max_id])]))
         
         i += 1
 

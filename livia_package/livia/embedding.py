@@ -41,7 +41,7 @@ def compute_embedding(dataframe:pd.DataFrame, emb_column_names:list, id_column_n
     print("-> Dataframe is processed: Columns are merged; Text data is preprocessed; ...")
     # filter dataframe to contain only id_column + emb_columns
     df_filtered = dataframe[emb_column_names]
-
+    del dataframe
     # create column full text that contains all the text from emb_columns
     df_filtered = df_filtered.assign(full_text = df_filtered[df_filtered.columns[1:]].apply(lambda x: ' '.join(x.dropna().astype(str)),axis=1))
 
@@ -58,11 +58,14 @@ def compute_embedding(dataframe:pd.DataFrame, emb_column_names:list, id_column_n
     # generate sentence embedding
     print("-> Sentence embedding is generated:")
     embedding = model.encode(text_list, show_progress_bar=True)
+    del model
 
     # create embedding object containing vectors and identifiers
     identifier = df_filtered[id_column_name].to_numpy().reshape((-1,1))
+    del df_filtered
 
     embedding_object = Embedding(embedding, identifier)
+
     return embedding_object
 
 def pca_reduce(embedding:Embedding, dimensions:int, standardize=True):
@@ -148,7 +151,7 @@ def plot_3d(embedding_to_plot:Embedding, meta_data:pd.DataFrame, n:int, id_colum
                     color=color_column, 
                     hover_name=title_column, # what to show when hovered over
                     hover_data=[id_column] + info_columns,
-                    width=2000, height=850, # adjust height and width
+                    width=1800, height=850, # adjust height and width
                     title=title_plot)
     
     # make set size for legend and hover label

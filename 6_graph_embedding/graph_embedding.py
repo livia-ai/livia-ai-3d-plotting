@@ -19,16 +19,18 @@ df_data = df_data[~df_data["subjects"].isnull()].reset_index(drop=True)
 
 # take subsample 
 data_length = len(df_data)
-n_total = 30000
+n_total = 20000
 rng = np.random.default_rng()
 id_list = list(range(data_length))
-sample_ids = rng.choice(id_list, size=n_total, replace=False)
+if n_total <= len(id_list):
+    sample_ids = rng.choice(id_list, size=n_total, replace=False)
+else:
+    sample_ids = np.array(id_list)
 
 df_data = df_data.copy().loc[sample_ids]
 
 # create graph 
 G = nx.Graph()
-
 for i in range(len(df_data)):
 
     id,title,subjects = df_data.iloc[i]
@@ -38,6 +40,8 @@ for i in range(len(df_data)):
 
     # add subject node
     subjects = subjects.split("|")
+    subjects = [subject.strip() for subject in subjects]
+
     G.add_nodes_from(subjects)
 
     # generate edges as tuples
@@ -45,6 +49,7 @@ for i in range(len(df_data)):
     G.add_edges_from(edges)
 
 model = Node2Vec(G, workers=6)
+
 node2vec = model.fit(window=10, min_count=1 ,workers=6)
 del model
 del G
@@ -60,7 +65,6 @@ format += ['%.18e']*(graph_embedding.shape[1])
 np.savetxt(f"wm_graph_embedding_{n_total}rs.csv",np.concatenate([np.array(identifier).reshape(-1,1), graph_embedding], axis=1, dtype=object), delimiter=',', fmt=format)
 
 
-
 # pca to 3d
 # standardize data
 graph_embedding = (graph_embedding - np.mean(graph_embedding, axis=0)) / np.std(graph_embedding, axis=0)
@@ -70,7 +74,7 @@ pca = PCA(n_components=dimensions)
 embedding_matrix_3d = pca.fit_transform(graph_embedding)
 
 # take random subsample of dataset
-n=5000
+n=3000
 rng = np.random.default_rng()
 id_list = list(range(n_total))
 sampled_id_list = rng.choice(id_list, size=n, replace=False)
