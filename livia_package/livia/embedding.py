@@ -61,7 +61,7 @@ def compute_embedding(dataframe:pd.DataFrame, emb_column_names:list, id_column_n
     del model
 
     # create embedding object containing vectors and identifiers
-    identifier = df_filtered[id_column_name].to_numpy().reshape((-1,1))
+    identifier = df_filtered[id_column_name].to_numpy()
     del df_filtered
 
     embedding_object = Embedding(embedding, identifier)

@@ -7,19 +7,35 @@ import numpy as np
 import plotly.express as px
 import gc
 
-### Wien Museum####
-museum = "wm"
-df_data = pd.read_csv("data/wm/wien_museum.csv")
-embedding_column_names = ["id", "title", "subjects"]
+from livia import embedding
+from livia import triplet
+
+#graph_emb = embedding.load_csv("data/graph/wm_graph_embedding_20000rs.csv")
+#res = triplet.generate_triplets(embedding=graph_emb, method="clustering", n=100)
+#print(res)
+
+
+
+#### Wien Museum ####
+#museum = "wm"
+#df_data = pd.read_csv("data/wm/wien_museum.csv")
+#embedding_column_names = ["id", "title", "subjects"]
+#graph_column = "subjects"
+
+#### Belvedere ####
+museum = "bel"
+df_data = pd.read_csv(f"data/{museum}/belvedere.csv")
+embedding_column_names = ["Identifier", "Title", "Description", "ExpertTags"]
+id_column_name = "Identifier"
+graph_column = "ExpertTags"
 
 df_data = df_data[embedding_column_names]
-
 # filter all samples with no subjects
-df_data = df_data[~df_data["subjects"].isnull()].reset_index(drop=True)
+df_data = df_data[~df_data[graph_column].isnull()].reset_index(drop=True)
 
 # take subsample 
 data_length = len(df_data)
-n_total = 20000
+n_total = data_length
 rng = np.random.default_rng()
 id_list = list(range(data_length))
 if n_total <= len(id_list):
@@ -28,27 +44,29 @@ else:
     sample_ids = np.array(id_list)
 
 df_data = df_data.copy().loc[sample_ids]
+print(len(df_data))
 
 # create graph 
 G = nx.Graph()
 for i in range(len(df_data)):
 
-    id,title,subjects = df_data.iloc[i]
+    id,title,description,tags = df_data.iloc[i]
 
     # add sample node
     G.add_node(id)
 
     # add subject node
-    subjects = subjects.split("|")
-    subjects = [subject.strip() for subject in subjects]
+    tags = tags.split("|")
+    tags = [tag.strip() for tag in tags]
 
-    G.add_nodes_from(subjects)
+    G.add_nodes_from(tags)
 
     # generate edges as tuples
-    edges = [(subject, id) for subject in subjects]
+    edges = [(tag, id) for tag in tags]
     G.add_edges_from(edges)
 
-model = Node2Vec(G, workers=6)
+
+model = Node2Vec(G, workers=6, num_walks=16)
 
 node2vec = model.fit(window=10, min_count=1 ,workers=6)
 del model
@@ -58,11 +76,11 @@ keyed_vectors = node2vec.wv
 del node2vec
 gc.collect()
 
-identifier = list(df_data["id"].astype(str))
+identifier = list(df_data["Identifier"].astype(str))
 graph_embedding = keyed_vectors[identifier]
 format = ['%s']
 format += ['%.18e']*(graph_embedding.shape[1])
-np.savetxt(f"wm_graph_embedding_{n_total}rs.csv",np.concatenate([np.array(identifier).reshape(-1,1), graph_embedding], axis=1, dtype=object), delimiter=',', fmt=format)
+np.savetxt(f"bel_graph_embedding.csv",np.concatenate([np.array(identifier).reshape(-1,1), graph_embedding], axis=1, dtype=object), delimiter=',', fmt=format)
 
 
 # pca to 3d
@@ -84,10 +102,9 @@ df = df_data.copy().loc[sample_ids]
 del df_data
 
 # Create 3d plot of random subsample
-id_column = "id"
-color_column = "subjects"
-title_column = "title"
-df = df.astype({id_column: "str"})
+color_column = graph_column
+title_column = "Title"
+df = df.astype({id_column_name: "str"})
 
 # for better visualization crop title
 length = 75
