@@ -1,0 +1,16 @@
+Metadata-Version: 2.1
+Name: livia
+Version: 0.2.9
+Summary: Linking Viennese Art through AI
+Home-page: https://github.com/livia-ai/livia-ai-scripts
+Author: Bernhard Franzl
+Author-email: bernhard.franzl@gmx.at
+Classifier: Programming Language :: Python :: 3
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+### Installation
+
+To install run this command:<br>
+pip install --extra-index-url https://testpypi.python.org/pypi livia
+
