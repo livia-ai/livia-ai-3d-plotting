@@ -66,7 +66,7 @@ class TripletDataset(Dataset):
             sim_img  = self.transform(sim_img)
             dis_img  = self.transform(dis_img)
 
-        return ori_img, sim_img, dis_img
+        return ori_img, sim_img, dis_img, ori_path
 
 
 class ImageDataset(Dataset):

@@ -8,6 +8,7 @@ from nltk.corpus import stopwords
 from sentence_transformers import SentenceTransformer
 from sklearn.decomposition import PCA
 import plotly.express as px
+from torch import embedding
 from tqdm import tqdm
 
 class Embedding:
@@ -108,7 +109,7 @@ def preprocessing(text_data: pd.DataFrame, column_name: str) -> pd.DataFrame:
         
     return helper
 
-def plot_3d(embedding_to_plot:Embedding, meta_data:pd.DataFrame, n:int, id_column, title_column, color_column, info_columns:list, title_plot="3D Plot of Embedding", standardize=False):
+def plot_3d(embedding_to_plot:Embedding, meta_data:pd.DataFrame, n:int, id_column, title_column, color_column, info_columns:list, title_plot="3D Plot of Embedding", standardize=False, window_shape=(1500,750)):
 
 
     if embedding_to_plot.shape[1] > 3:
@@ -117,33 +118,34 @@ def plot_3d(embedding_to_plot:Embedding, meta_data:pd.DataFrame, n:int, id_colum
     # make column list is unique
     column_list = [id_column, title_column, color_column] + info_columns
     columns_unique = list(dict.fromkeys(column_list))
-    
-    df = meta_data[columns_unique]
-    df = df.astype({id_column: "str"})
-    df = df.copy()
 
-    # just in case order the 
-    order_of_embedding = np.where(embedding_to_plot.identifier == df[id_column])
-    embedding_matrix_3d = embedding_to_plot.embedding[order_of_embedding]
+    # dataframe that contains meta data
+    df_meta = meta_data[columns_unique]
+    df_meta = df_meta.astype({id_column: "str"})
 
+    #df that contains the 3d embedding
+    df_emb_emb = pd.DataFrame(embedding_to_plot.embedding, columns = ["x", "y", "z"])
+    df_emb_id = pd.DataFrame(embedding_to_plot.identifier, columns = [id_column])
+    df_emb = df_emb_id.join(df_emb_emb)
 
-    embedding_length = len(embedding_matrix_3d)
+    embedding_length = len(df_emb)
+
     # if specified take random subsample of dataset
     if n != None:
         if n < embedding_length:
             rng = np.random.default_rng()
             id_list = list(range(embedding_length))
             sample_ids = rng.choice(id_list, size=n, replace=False)
-            embedding_matrix_3d = embedding_matrix_3d[sample_ids]
-            df = df.copy().loc[sample_ids]
+            df_emb = df_emb.copy().iloc[sample_ids]
+            #df_meta = df_meta.copy().iloc[sample_ids]
+
+    # merge both dataframes based on id_column in case there is different ordering
+    df = pd.merge(df_emb, df_meta, on="id")
 
     # for better visualization crop title
     length = 75
     df[title_column] = df[title_column].apply(lambda x: str(x)[:length] if len(str(x))>length else str(x))
     df[color_column] = df[color_column].apply(lambda x: str(x)[:100] if len(str(x))>100 else str(x))
-    df["x"] = embedding_matrix_3d[:,0]
-    df["y"] = embedding_matrix_3d[:,1]
-    df["z"] = embedding_matrix_3d[:,2]
     df.fillna('NaN', inplace=True)
 
     fig = px.scatter_3d(df, 
@@ -151,7 +153,7 @@ def plot_3d(embedding_to_plot:Embedding, meta_data:pd.DataFrame, n:int, id_colum
                     color=color_column, 
                     hover_name=title_column, # what to show when hovered over
                     hover_data=[id_column] + info_columns,
-                    width=1800, height=850, # adjust height and width
+                    width=window_shape[0], height=window_shape[1], # adjust height and width
                     title=title_plot)
     
     # make set size for legend and hover label

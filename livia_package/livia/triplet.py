@@ -59,7 +59,8 @@ def generate_triplets(embedding:Embedding, method:str, n:int, seed:int=None):
                                              query=query_ses, 
                                              query_ids=query_ids,
                                              n=n,
-                                             rng=rng)
+                                             rng=rng,
+                                             n_neighbors=5)
                     
     elif method == "brute-force":
         print(f"{n} triplets are generated. This may take a while ... ")
@@ -85,7 +86,7 @@ def generate_triplets(embedding:Embedding, method:str, n:int, seed:int=None):
     print(f"{n-removed} triplets are returned")
     return triplets_unique
 
-def triplets_clustering(embedding, query, query_ids, n, rng, nr_clusters=5, nr_farthest=3, n_random_sample=3000):
+def triplets_clustering(embedding, query, query_ids, n, rng, n_neighbors=5, nr_clusters=5, nr_farthest=3, n_random_sample=3000):
     
     ################################
     # clustering
@@ -103,7 +104,6 @@ def triplets_clustering(embedding, query, query_ids, n, rng, nr_clusters=5, nr_f
 
     ################################
     # nearest neighbors - sklearn built-in function
-    n_neighbors = 5 # rather small n_neighbors because of randomness & approximations
     nn = neighbors.NearestNeighbors(n_neighbors=n_neighbors+1, metric="cosine")
     nn.fit(embedding.embedding)
     nn_dists, nn_indices = nn.kneighbors(query)

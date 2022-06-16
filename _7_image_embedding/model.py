@@ -1,9 +1,10 @@
-from click import progressbar
 import torch
 from torch import nn
 from tqdm import tqdm
 from tqdm import tqdm
 import numpy as np
+import torch.nn.functional as F
+
 
 class EmbeddingNet(torch.nn.Module):
     def __init__(self):
@@ -15,38 +16,39 @@ class EmbeddingNet(torch.nn.Module):
         self.flatten = nn.Flatten()
 
         # encoder layers
-        self.conv1 = nn.Conv2d(3, 16, 9)
-        self.conv2 = nn.Conv2d(16, 16, 9)
+        self.conv1 = nn.Conv2d(3, 9, 3)
+        self.conv2 = nn.Conv2d(9, 9, 3)
+        self.conv3 = nn.Conv2d(9, 5, 3)
+
+        #self.conv4 = nn.Conv2d(16, 16, 7)
         
-        self.conv3 = nn.Conv2d(16, 16, 7)
-        self.conv4 = nn.Conv2d(16, 16, 7)
+        #self.conv5 = nn.Conv2d(16, 16, 5)
+        #self.conv6 = nn.Conv2d(16, 4, 5)
         
-        self.conv5 = nn.Conv2d(16, 16, 5)
-        self.conv6 = nn.Conv2d(16, 4, 5)
-        
-        self.lin1 = nn.Linear(784, 256)
-        self.lin2 = nn.Linear(256, 64)
-        self.lin3 = nn.Linear(64, 16)
+        self.lin1 = nn.Linear(2420, 2048)
+        self.lin2 = nn.Linear(2048,128)
 
     def forward(self, x):
 
         # encoder
         h = self.relu(self.conv1(x))
         h = self.relu(self.conv2(h))
-        #h = self.pool(h)
-        
         h = self.relu(self.conv3(h))
-        h = self.relu(self.conv4(h))
+        h = self.pool(h)
+
+        #h = self.relu(self.conv3(h))
+        #h = self.relu(self.conv4(h))
         #h = self.pool(h)        
         
-        h = self.relu(self.conv5(h))
-        h = self.relu(self.conv6(h))
+        #h = self.relu(self.conv5(h))
+       # h = self.relu(self.conv6(h))
         #h = self.pool(h)
             
         h = self.relu(self.lin1(self.flatten(h)))
-        h = self.relu(self.lin2(h))
-        h = self.lin3(h)
-        
+        h = self.lin2(h)
+
+        # L2 norm at the end
+        #h = F.normalize(h, p=2, dim=1)
         #print(h.shape)
             
         return h   
@@ -75,7 +77,7 @@ def train(model, dataloader, progress_bar, loss_fn, optimizer, writer):
     for i in progress_bar:
 
         epoch_loss = list()
-        for anchor, positive, negative in dataloader:
+        for anchor, positive, negative, _ in dataloader:
             
             anchor = anchor.to(device="cuda")
             pos = positive.to(device="cuda")

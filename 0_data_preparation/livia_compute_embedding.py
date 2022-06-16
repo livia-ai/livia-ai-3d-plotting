@@ -1,7 +1,6 @@
 import livia
 from livia import embedding
 from livia import triplet
-from matplotlib.pyplot import title
 import pandas as pd
 from time import time
 
@@ -14,13 +13,13 @@ from time import time
 #id_column_name = "id"
 #columns_str="_".join(embedding_column_names)
 
-# bel
-museum = "bel"
-data_folder = f"data/{museum}/"
-df_data = pd.read_csv(data_folder +  "belvedere.csv")
-embedding_column_names = ["Title", "Description"]
-id_column_name = "Identifier"
-columns_str="_".join(embedding_column_names)
+## bel
+#museum = "bel"
+#data_folder = f"data/{museum}/"
+#df_data = pd.read_csv(data_folder +  "belvedere.csv")
+#embedding_column_names = ["Title", "Description"]
+#id_column_name = "Identifier"
+#columns_str="_".join(embedding_column_names)
 
 ## mak
 #museum = "mak"
@@ -34,16 +33,16 @@ columns_str="_".join(embedding_column_names)
 #id_column_name = "priref"
 #columns_str="_".join(embedding_column_names)
 
-# compute embedding
-museum_embedding = embedding.compute_embedding(df_data, embedding_column_names, id_column_name)
-embedding.save_to_csv(museum_embedding, f"{museum}_sbert_{columns_str}_{museum_embedding.shape[1]}d")
-print(museum_embedding.shape)
+## compute embedding
+#museum_embedding = embedding.compute_embedding(df_data, embedding_column_names, id_column_name)
+#embedding.save_to_csv(museum_embedding, f"{museum}_sbert_{columns_str}_{museum_embedding.shape[1]}d")
+#print(museum_embedding.shape)
 
-# pca reduce
-d = 256
-museum_embedding_dp = embedding.pca_reduce(museum_embedding, d)
-embedding.save_to_csv(museum_embedding_dp, f"{museum}_sbert_{columns_str}_{museum_embedding.shape[1]}d")
-print(museum_embedding_dp.shape)
+## pca reduce
+#d = 256
+#museum_embedding_dp = embedding.pca_reduce(museum_embedding, d)
+#embedding.save_to_csv(museum_embedding_dp, f"{museum}_sbert_{columns_str}_{museum_embedding.shape[1]}d")
+#print(museum_embedding_dp.shape)
 
 
 
@@ -52,8 +51,13 @@ print(museum_embedding_dp.shape)
 ## 3d plot
 #embedding_to_plot = embedding.load_csv(data_folder + f"{museum}_sbert_{columns_str}_512d.csv")
 
-title_column_name = "Title"
-color_column_name = "ExpertTags"
+df_data = pd.read_csv("data/combined/df_combined.csv", low_memory=False)
+embedding_to_plot = embedding.load_csv("data/combined/combined_sbert_title_info_1_256d.csv")
+
+
+title_column_name = "title"
+color_column_name = "museum"
 info_column_names = []
-n = 3000
-embedding.plot_3d(museum_embedding, df_data, n, id_column_name, title_column_name, color_column_name, info_column_names, title_plot=f"{museum}_sbert_{columns_str}_{n}rs")
+
+n = 10000
+embedding.plot_3d(embedding_to_plot, df_data, n, "id", title_column_name, color_column_name, info_column_names, title_plot=f"3D Plot of Combined Dataset", window_shape=(1000,1000))
