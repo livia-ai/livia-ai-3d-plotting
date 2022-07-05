@@ -103,3 +103,44 @@ class ImageDataset(Dataset):
             img = self.transform(img)
 
         return img_id, img
+
+class MixedImageDataset(Dataset):
+    
+    def __init__(self, root_dir:str, transform=None):
+        self.root_dir = root_dir
+        self.transform = transform
+
+        self.samples = self.get_samples()
+
+    def get_samples(self):
+        
+        root, bel, wm = os.walk(self.root_dir, topdown=True)
+
+        bel_id = root[1][0]
+        wm_id = root[1][1]
+
+        bel_files = list(zip([bel_id]*len(bel[2]), bel[2]))
+        wm_files = list(zip([wm_id]*len(wm[2]), wm[2]))
+
+        return bel_files + wm_files     
+    
+    def __len__(self):
+        return len(self.samples)
+    
+    def loader(self, path):
+        with open(path, "rb") as f:
+            img = Image.open(f)
+            return img.convert("RGB")
+        
+    def __getitem__(self, idx):
+        
+        museum_id, img_path = self.samples[idx]
+
+        img_id = img_path.split(".")[0]
+
+        img = self.loader(os.path.join(self.root_dir, museum_id, img_path))
+
+        if self.transform is not None:
+            img = self.transform(img)
+
+        return (museum_id, img_id, img)

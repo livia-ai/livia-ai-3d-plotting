@@ -173,3 +173,5 @@ def plot_3d(embedding_to_plot:Embedding, meta_data:pd.DataFrame, n:int,
     fig.update_traces(marker_size = 3)
     fig.show()
 
+    return fig
+
