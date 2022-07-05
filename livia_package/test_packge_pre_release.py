@@ -36,12 +36,12 @@ columns_str="_".join(embedding_column_names)
 ##########################################
 
 #########################################
-# compute embedding
-print("Testing: Embedding Computation")
+## compute embedding
+#print("Testing: Embedding Computation")
 
-museum_embedding = embedding.compute_embedding(df_data, embedding_column_names, id_column_name)
-embedding.save_to_csv(museum_embedding, f"{museum}_sbert_{columns_str}_{museum_embedding.shape[1]}d")
-print(museum_embedding.shape)
+#museum_embedding = embedding.compute_embedding(df_data, embedding_column_names, id_column_name)
+#embedding.save_to_csv(museum_embedding, f"{museum}_sbert_{columns_str}_{museum_embedding.shape[1]}d")
+#print(museum_embedding.shape)
 #########################################
 
 #########################################

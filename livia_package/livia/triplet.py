@@ -1,6 +1,7 @@
 from time import time
 import warnings
 import numpy as np
+from transformers import ELECTRA_PRETRAINED_MODEL_ARCHIVE_LIST, ElectraForQuestionAnswering
 warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -34,7 +35,7 @@ def uniqueness_triplets(triplets):
     
     return triplets_unique, removed
 
-def generate_triplets(embedding:Embedding, method:str, n:int, seed:int=None):
+def generate_triplets(embedding:Embedding, method:str, n:int, seed:int=None, n_neighbors:int=5):
     """
     :method: the method used to calculate the triplets -> "clustering" or "brute-force"
 
@@ -47,10 +48,9 @@ def generate_triplets(embedding:Embedding, method:str, n:int, seed:int=None):
     returns: the generated triplets as a list of tuples
     """
 
-    # create random number generator
-    rng = np.random.default_rng(seed=seed)
 
     #sample n queries randomly
+    rng = np.random.default_rng()
     query_ids, query_ses = sample_n_queries(embedding.embedding, n, rng)
 
     if method == "clustering":
@@ -60,7 +60,7 @@ def generate_triplets(embedding:Embedding, method:str, n:int, seed:int=None):
                                              query_ids=query_ids,
                                              n=n,
                                              rng=rng,
-                                             n_neighbors=5)
+                                             n_neighbors=n_neighbors)
                     
     elif method == "brute-force":
         print(f"{n} triplets are generated. This may take a while ... ")
@@ -86,7 +86,7 @@ def generate_triplets(embedding:Embedding, method:str, n:int, seed:int=None):
     print(f"{n-removed} triplets are returned")
     return triplets_unique
 
-def triplets_clustering(embedding, query, query_ids, n, rng, n_neighbors=5, nr_clusters=5, nr_farthest=3, n_random_sample=3000):
+def triplets_clustering(embedding, query, query_ids, n, rng, n_neighbors, nr_clusters=8, n_random_sample=3000):
     
     ################################
     # clustering
@@ -99,29 +99,34 @@ def triplets_clustering(embedding, query, query_ids, n, rng, n_neighbors=5, nr_c
     df = pd.DataFrame({"index":embedding.identifier, "label":labels})
     df = df.astype({"label": "str"})
     df = df.astype({"index": "str"})
+
+    #print(df.value_counts("label"))
     ################################
+
 
 
     ################################
     # nearest neighbors - sklearn built-in function
-    nn = neighbors.NearestNeighbors(n_neighbors=n_neighbors+1, metric="cosine")
+    nn_n_neighbors = 20
+    nn = neighbors.NearestNeighbors(n_neighbors=nn_n_neighbors+1, metric="cosine")
     nn.fit(embedding.embedding)
     nn_dists, nn_indices = nn.kneighbors(query)
     ################################
 
 
+
     ################################
     # farthest neighbors
-
     # compute distances to cluster centers
     dists_to_cluster_centers = cluster_algo.transform(query)
     # choose k clusters with maximal distance
     argsort = np.argsort(dists_to_cluster_centers, axis=1)
-    k_farthest_clusters = argsort[:,-nr_farthest:]
+    k_farthest_clusters = argsort[:,-(nr_clusters-1):]
 
     # select only the data that belongs to the k-farthest clusters
     string_labels = k_farthest_clusters.astype(str)
     df_clusters = [df.loc[df["label"].isin(string_label)] for string_label in string_labels]
+
     # extract row indices from subsample
     indices_clusters = [np.array(df.index) for df in df_clusters]
     # select a random sample form the subsample
@@ -137,11 +142,16 @@ def triplets_clustering(embedding, query, query_ids, n, rng, n_neighbors=5, nr_c
         max_k_dists = distance_magic_clustering[0][3]
         max_k_ids_df = random_subsample[i][max_k_ids_subsample]
 
+        p_fn = rng.permutation(np.arange(n_neighbors))
+        p_nn = rng.permutation(np.arange(10))
 
         results.append((nn_indices[i][1:], nn_dists[i][1:], max_k_ids_df, max_k_dists))
-        museum_id_results.append([embedding.identifier[nn_indices[i][1:]], nn_dists[i][1:] ,embedding.identifier[max_k_ids_df], max_k_dists])
 
+        slice = nn_n_neighbors
+        museum_id_results.append([embedding.identifier[nn_indices[i][1:]][p_nn][:slice], nn_dists[i][1:][p_nn][:slice] ,embedding.identifier[max_k_ids_df][p_fn][:slice] , max_k_dists[p_fn][:slice]])
     ################################
+
+
 
     ################################
     #create triplets

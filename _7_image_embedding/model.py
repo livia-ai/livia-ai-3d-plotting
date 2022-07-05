@@ -1,7 +1,6 @@
 import torch
 from torch import nn
 from tqdm import tqdm
-from tqdm import tqdm
 import numpy as np
 import torch.nn.functional as F
 
@@ -48,7 +47,7 @@ class EmbeddingNet(torch.nn.Module):
         h = self.lin2(h)
 
         # L2 norm at the end
-        #h = F.normalize(h, p=2, dim=1)
+       # h = F.normalize(h, p=2, dim=1)
         #print(h.shape)
             
         return h   
@@ -68,7 +67,6 @@ class TripletNet(nn.Module):
     def encode(self, image):
         return self.embedding_model(image)
 
-
 def train(model, dataloader, progress_bar, loss_fn, optimizer, writer):
 
     train_loss = list()
@@ -83,8 +81,7 @@ def train(model, dataloader, progress_bar, loss_fn, optimizer, writer):
             pos = positive.to(device="cuda")
             neg = negative.to(device="cuda")
 
-            anch_hidden, pos_hidden, neg_hidden = model(anchor, pos, neg)          
-            
+            anch_hidden, pos_hidden, neg_hidden = model(anchor, pos, neg)
             loss = loss_fn(anch_hidden, pos_hidden, neg_hidden)     
             
             loss.backward()

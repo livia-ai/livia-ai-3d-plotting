@@ -66,34 +66,25 @@ class TripletDataset(Dataset):
             sim_img  = self.transform(sim_img)
             dis_img  = self.transform(dis_img)
 
-        return ori_img, sim_img, dis_img, ori_path
+        return ori_img, sim_img, dis_img, (ori_path, sim_path, dis_path)
 
 
 class ImageDataset(Dataset):
     
-    def __init__(self, sample_ids, root_dir:str, transform=None):
+    def __init__(self, root_dir:str, transform=None):
         self.root_dir = root_dir
         self.transform = transform
-        self.image_paths = self.samples_to_image_paths(sample_ids)
-        
-    def samples_to_image_paths(self, sample_ids):
+
+        self.samples = self.get_samples()
+
+    def get_samples(self):
         
         root, dirs, files = sorted(os.walk(self.root_dir, followlinks=True))[0]
-        
-        paths = []
-        for idx in sample_ids:
-            
-            image_path = idx + ".224.jpg" 
-            
-            if image_path in files:
-                paths.append((idx,image_path))
-            else:
-                paths.append((idx, None))
-                
-        return paths     
+
+        return files     
     
     def __len__(self):
-        return len(self.image_paths)
+        return len(self.samples)
     
     def loader(self, path):
         with open(path, "rb") as f:
@@ -102,10 +93,13 @@ class ImageDataset(Dataset):
         
     def __getitem__(self, idx):
         
-        sample_id, img_path = self.image_paths[idx]
+        img_path = self.samples[idx]
+
+        img_id = img_path.split(".")[0]
+
         img = self.loader(os.path.join(self.root_dir, img_path))
 
         if self.transform is not None:
             img = self.transform(img)
 
-        return img
+        return img_id, img

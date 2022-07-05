@@ -109,7 +109,9 @@ def preprocessing(text_data: pd.DataFrame, column_name: str) -> pd.DataFrame:
         
     return helper
 
-def plot_3d(embedding_to_plot:Embedding, meta_data:pd.DataFrame, n:int, id_column, title_column, color_column, info_columns:list, title_plot="3D Plot of Embedding", standardize=False, window_shape=(1500,750)):
+def plot_3d(embedding_to_plot:Embedding, meta_data:pd.DataFrame, n:int, 
+            id_column, title_column, color_column, info_columns:list, 
+            title_plot="3D Plot of Embedding", standardize=False, window_shape=(1500,750)):
 
 
     if embedding_to_plot.shape[1] > 3:
@@ -140,7 +142,7 @@ def plot_3d(embedding_to_plot:Embedding, meta_data:pd.DataFrame, n:int, id_colum
             #df_meta = df_meta.copy().iloc[sample_ids]
 
     # merge both dataframes based on id_column in case there is different ordering
-    df = pd.merge(df_emb, df_meta, on="id")
+    df = pd.merge(df_emb, df_meta, on=id_column)
 
     # for better visualization crop title
     length = 75

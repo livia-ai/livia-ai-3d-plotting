@@ -7,7 +7,6 @@ from torchvision import transforms
 import livia.embedding as embedding
 import livia.triplet as triplet
 from dataset import TripletDataset, ImageDataset
-from model import EmbeddingNet,TripletNet, train
 from torch.utils.tensorboard import SummaryWriter
 
 from tqdm import tqdm
@@ -16,130 +15,126 @@ import numpy as np
 import pickle
 
 #################################################################
-# Create datasetembedding_loaded = embedding.load_csv("data/wm/wm_sbert_title_districts_subjects_256d.csv")
-size = 50
-batch_size = 64
+# specify run_name
+run_name = f'pretrained_triplets=59898_size=224_bs=6_margin=1_epochs=15'
 
-# specify root directory that contains the images
-root_dir = 'data/test_images/wm_cropped_train'
+#load museum data
+museum_data = pd.read_csv("data/bel/belvedere.csv")
+id_column = "Identifier"
+title_column = "Title"
+color_column = "ExpertTags"
+museum_data = museum_data[[id_column, title_column, color_column]]
+museum_data = museum_data.astype({id_column: "str"})
+#################################################################
 
-# specify transforms
-transform = transforms.Compose([transforms.ToTensor(), transforms.CenterCrop(size)])
-
-## load triplets
-#triplets = []
-#for i in range(6):
-#    with open(f'data/triplets/15000/triplets_{i}', 'rb') as fp:
-#        triplets_loaded = pickle.load(fp)
-#        triplets.extend(triplets_loaded)
-for trainset_size in [10000, 15000, 25000, 85000]:
-    with open(f'data/wm/image_paths_for_dataset_nneighbors=15', 'rb') as fp:
-        image_path_triplets = pickle.load(fp)[:trainset_size]
-
-    ###############
-    ## analyze triplets
-    #from collections import defaultdict
-
-    #sim_counts = defaultdict(int)
-    #dis_counts = defaultdict(int)
-    #sam_counts = defaultdict(int)
-    #for sample, sim, dis in image_path_triplets:
-    #    sam_counts[sample] += 1
-    #    sim_counts[sim] += 1
-    #    dis_counts[dis] += 1
-
-    #print(len(image_path_triplets))
-    #print(sorted(dis_counts.items(), key=lambda x: x[1], reverse=True)[:20])
-    #print(sorted(sim_counts.items(), key=lambda x: x[1], reverse=True)[:20])
-    #print(sorted(sam_counts.items(), key=lambda x: x[1], reverse=True)[:20])
-
-    #############
-
-    ## generate train and test dataset
-    train_dataset = TripletDataset(samples = image_path_triplets,
-                                root_dir = root_dir,
-                                transform=transform)
-
-    test_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=1, shuffle=False)
-    ##################################################################
+#################################################################
+## Create dataset
+## specify root directory that contains the images
+#root_dir = 'data/images/bel_cropped'
+#size=224
+#transform = transforms.Compose([transforms.CenterCrop(size), transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+#eval_dataset = ImageDataset(root_dir=root_dir, transform=transform)
+#eval_set_size = len(eval_dataset)
+#eval_dataloader = torch.utils.data.DataLoader(eval_dataset, batch_size=1, shuffle=False)
+####################################################################
 
 
-    ##################################################################
-    # evaluate model
 
-    # hyperparameters
-    lr = 1e-4
-    wd = 0
-    n_epochs = 100
-    margin = 1.5
+####################################################################
+## evaluate model
+#log_dir = "experiments/runs/"
+#triplet_model = torch.load(log_dir + run_name + "/triplet_net.pt", map_location='cpu')
+##triplet_model = triplet_model.to(device="cuda")
 
-    # load model
-    log_dir = "experiments/runs/"
-    run_name = f'centercropped={size}_triplets={trainset_size}_bs={batch_size}_margin={margin}_lr={lr}_wd={wd}_MaxP'
-    triplet_model = torch.load(log_dir + run_name + "/triplet_net.pt")
-    triplet_model = triplet_model.to(device="cuda")
-    
-    #for anchor, pos, neg in train_dataloader:
-    #    print("in:", anchor.shape)
-    #    anchor = anchor.to(device="cuda")
-    #    pos = pos.to(device="cuda")
-    #    neg = neg.to(device="cuda")
-    #    anch_hidden, pos_hidden, neg_hidden = triplet_net(anchor, pos, neg)
-    #    print("h:", anch_hidden.shape)
-    #    break
-    #error
+## create image embedding
+## load sentece embedding that should be used for computing triplets
+## only works if batch size is 1
 
-    # create image embedding
-    wm_data = pd.read_csv("data/wm/wien_museum.csv")
-    wm_data = wm_data[["id", "title", "subjects"]]
-    wm_data = wm_data.astype({"id": "str"})
+#with torch.no_grad():
+#    image_embedding_list = []
+#    id_list = []
+#    unique = set()
+#    for img_id, img in tqdm(eval_dataloader):
 
-    # load sentece embedding that should be used for computing triplets
-    embedding_loaded = embedding.load_csv("data/wm/wm_sbert_title_districts_subjects_256d.csv")
+#        if img_id not in unique:
+#            #img = img.to(device="cuda")
+#            encoded_img = triplet_model.encode(img)
+#            image_embedding_list.append(encoded_img.numpy()[0])
 
-    #img_dataset = ImageDataset(wm_data["id"], root_dir, transform)
-    #img_dataloader = torch.utils.data.DataLoader(img_dataset, batch_size=1, shuffle=False)
+#            unique.add(img_id)
+#            id_list.append(img_id)
 
+#image_embedding = embedding.Embedding(np.array(image_embedding_list), np.array(id_list, dtype=object))
+#embedding.save_to_csv(image_embedding, f"data/bel/bel_imagemb:{run_name}")
+####################################################################
 
-    # only works if batch size is 1
-    #print("Iterating over images...")
-    with torch.no_grad():
-        image_embedding_list = []
-        id_list = []
-        unique = set()
-        for imgs in tqdm(test_dataloader):
-            img, _,_, ori_path = imgs
-            sample_id = ori_path[0].split(".")[0]
+image_embedding = embedding.load_csv(f"data/bel/bel_imagemb:{run_name}.csv")
 
-            if sample_id not in unique:
-                img = img.to(device="cuda")
-                encoded_img = triplet_model.encode(img)
-                image_embedding_list.append(encoded_img.cpu().numpy()[0])
-
-                unique.add(sample_id)
-                id_list.append(sample_id)
+##################################################################
+# make 3d plots
+#n = 5000
+## plot sentence embedding
+#embedding_loaded = embedding.load_csv("data/bel/bel_sbert_Title_Description_ExpertTags_512d.csv")
+#embedding.plot_3d(embedding_loaded, museum_data, n, 
+#                  id_column, title_column, color_column, [], 
+#                  "Sentence Embedding")
+## take only samples from df where ids are in id_list
+#meta_data = museum_data.loc[museum_data[id_column].isin(image_embedding.identifier)]
+## plot image embedding
+#embedding.plot_3d(image_embedding, meta_data, n, 
+#                id_column, title_column, color_column, [], 
+#                f"Image Embedding stand: \n {run_name}", True, window_shape=(2000,750))
+## plot image embedding
+#embedding.plot_3d(image_embedding, meta_data, n, 
+#                id_column, title_column, color_column, [], 
+#                f"Image Embedding: \n {run_name}", False, window_shape=(2000,750))
+###################################################################
 
 
-    image_embedding = embedding.Embedding(np.array(image_embedding_list), np.array(id_list, dtype=object))
-    embedding.save_to_csv(image_embedding, f"image_embedding_{trainset_size}")
 
-    # plot sentence embedding
-    n = 3000
+####################################################################
+# create triplets from existing image embedding and plots some
+# generate triplets
+n = 1000
+triplets = triplet.generate_triplets(image_embedding, "clustering", n)
+with open(f'data/bel/bel_image_triplets_not_frozen', 'wb') as fp:
+    pickle.dump(triplets, fp)
+####################################################################
 
-    embedding.plot_3d(embedding_loaded, wm_data, n, 
-                      "id", "title", "subjects", [], 
-                      "Sentence Embedding")
 
-    # take only samples from df where ids are in id_list
-    meta_data = wm_data.loc[wm_data["id"].isin(id_list)]
 
-    # plot image embedding
-    embedding.plot_3d(image_embedding, meta_data, n, 
-                    "id", "title", "subjects", [], 
-                    f"Image Embedding stand: \n {run_name}", True)
+##################################################################
+# load already created image_triplets
+root_dir = "data/images/bel_cropped"
+with open(f'data/bel/bel_image_triplets_not_frozen', 'rb') as fp:
+    image_triplets_loaded = pickle.load(fp)
 
-    # plot image embedding
-    embedding.plot_3d(image_embedding, meta_data, n, 
-                    "id", "title", "subjects", [], 
-                    f"Image Embedding: \n {run_name}", False)
+useable_triplets = []
+for ori, sim, dis in image_triplets_loaded:
 
+    split_ori = ori.split("/")
+    split_sim = sim.split("/")
+    split_dis = dis.split("/")
+
+    useable_triplets.append(("__@@__".join(split_ori), "__@@__".join(split_sim), "__@@__".join(split_dis)))
+
+from dataset import TripletDataset
+dataset = TripletDataset(triplets = useable_triplets,
+                         root_dir = root_dir,)
+
+import matplotlib.pyplot as plt
+for triplet in dataset: 
+
+    print(triplet[3])
+
+    fig,ax = plt.subplots(1,3)
+    ax[0].imshow(triplet[0])
+    ax[1].imshow(triplet[1])
+    ax[2].imshow(triplet[2])
+
+    ax[0].set_title("Sample")
+    ax[1].set_title("Similar")
+    ax[2].set_title("Dissimilar")
+
+    plt.show()
+##################################################################
