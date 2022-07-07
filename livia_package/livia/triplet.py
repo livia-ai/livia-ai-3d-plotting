@@ -35,7 +35,7 @@ def uniqueness_triplets(triplets):
     
     return triplets_unique, removed
 
-def generate_triplets(embedding:Embedding, method:str, n:int, seed:int=None, n_neighbors:int=5):
+def generate_triplets(embedding:Embedding, method:str, n:int, seed:int=None, nn_k:int=5, fn_k:int=5):
     """
     :method: the method used to calculate the triplets -> "clustering" or "brute-force"
 
@@ -60,7 +60,8 @@ def generate_triplets(embedding:Embedding, method:str, n:int, seed:int=None, n_n
                                              query_ids=query_ids,
                                              n=n,
                                              rng=rng,
-                                             n_neighbors=n_neighbors)
+                                             nn_k=nn_k,
+                                             fn_k=fn_k)
                     
     elif method == "brute-force":
         print(f"{n} triplets are generated. This may take a while ... ")
@@ -86,7 +87,7 @@ def generate_triplets(embedding:Embedding, method:str, n:int, seed:int=None, n_n
     print(f"{n-removed} triplets are returned")
     return triplets_unique
 
-def triplets_clustering(embedding, query, query_ids, n, rng, n_neighbors, nr_clusters=8, n_random_sample=3000):
+def triplets_clustering(embedding, query, query_ids, n, rng, nn_k, fn_k, nr_clusters=8, n_random_sample=3000):
     
     ################################
     # clustering
@@ -104,15 +105,12 @@ def triplets_clustering(embedding, query, query_ids, n, rng, n_neighbors, nr_clu
     ################################
 
 
-
     ################################
     # nearest neighbors - sklearn built-in function
-    nn_n_neighbors = 20
-    nn = neighbors.NearestNeighbors(n_neighbors=nn_n_neighbors+1, metric="cosine")
+    nn = neighbors.NearestNeighbors(n_neighbors=nn_k+1, metric="cosine")
     nn.fit(embedding.embedding)
     nn_dists, nn_indices = nn.kneighbors(query)
     ################################
-
 
 
     ################################
@@ -136,21 +134,20 @@ def triplets_clustering(embedding, query, query_ids, n, rng, n_neighbors, nr_clu
     museum_id_results = list()
     for i in range(n):
 
-        distance_magic_clustering = calc_distances(query[i].reshape(1,-1), embedding.embedding[random_subsample[i]], "cosine", n_neighbors)
+        distance_magic_clustering = calc_distances(query[i].reshape(1,-1), embedding.embedding[random_subsample[i]], "cosine", fn_k)
 
         max_k_ids_subsample = distance_magic_clustering[0][2].astype("int")
         max_k_dists = distance_magic_clustering[0][3]
         max_k_ids_df = random_subsample[i][max_k_ids_subsample]
 
-        p_fn = rng.permutation(np.arange(n_neighbors))
-        p_nn = rng.permutation(np.arange(10))
+        p_fn = rng.permutation(np.arange(fn_k))
+        p_nn = rng.permutation(np.arange(nn_k))
 
         results.append((nn_indices[i][1:], nn_dists[i][1:], max_k_ids_df, max_k_dists))
 
-        slice = nn_n_neighbors
+        slice = min(nn_k, fn_k)
         museum_id_results.append([embedding.identifier[nn_indices[i][1:]][p_nn][:slice], nn_dists[i][1:][p_nn][:slice] ,embedding.identifier[max_k_ids_df][p_fn][:slice] , max_k_dists[p_fn][:slice]])
     ################################
-
 
 
     ################################
