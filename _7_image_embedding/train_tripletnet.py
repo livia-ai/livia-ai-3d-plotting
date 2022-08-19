@@ -16,6 +16,7 @@ from model import EmbeddingNet, TripletNet, train
 
 torch.cuda.empty_cache() 
 
+device = "cuda:2"
 #################################################################
 # create dataset
 size = 224
@@ -48,7 +49,7 @@ for param in model.parameters():
 #for param in list(model.parameters())[-54:]:
 #    param.requires_grad = True
 
-triplet_net = TripletNet(model).to(device="cuda")
+triplet_net = TripletNet(model).to(device=device)
 
 ##test model
 #for anchor, pos, neg, ori_path in train_dataloader:
@@ -65,7 +66,7 @@ triplet_net = TripletNet(model).to(device="cuda")
 #################################################################
 # train model
 # hyperparameters
-lr = 1e-4
+lr = 0.001
 n_epochs = 10
 margin = 1
 wd = 0
@@ -87,7 +88,8 @@ trained_triplet_net, epoch_losses = train(model = triplet_net,
                                     progress_bar = progress_bar,
                                     loss_fn = triplet_loss,
                                     optimizer = optimizer,
-                                    writer = writer)
+                                    writer = writer,
+                                    device=device)
 writer.close()
 torch.save(trained_triplet_net, writer_log_path + "/triplet_net.pt")
 #################################################################
