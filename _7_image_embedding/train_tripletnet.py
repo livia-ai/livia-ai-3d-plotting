@@ -16,13 +16,13 @@ from model import EmbeddingNet, TripletNet, train
 
 torch.cuda.empty_cache() 
 
-device = "cuda:2"
+device = "cuda:0"
 #################################################################
 # create dataset
 size = 224
 batch_size = 6
 # specify root directory that contains the images
-root_dir = 'data/images/wm_cropped'
+root_dir = 'data/wm_cropped'
 # load triplets of image paths
 with open(f'data/wm_triplets_nnk=25_fnk=500/image_paths', 'rb') as fp:
     image_path_triplets = pickle.load(fp)
