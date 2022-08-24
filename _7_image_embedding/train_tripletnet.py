@@ -27,7 +27,8 @@ root_dir = 'data/wm_cropped'
 with open(f'data/wm_triplets_nnk=25_fnk=500/image_paths', 'rb') as fp:
     image_path_triplets = pickle.load(fp)
 # specify transforms
-transform = transforms.Compose([transforms.CenterCrop(size), transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+transform = transforms.Compose([transforms.Grayscale(num_output_channels=1), transforms.ToTensor()])
+#transform = transforms.Compose([transforms.CenterCrop(size), transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
 # generate train and test dataset
 train_dataset = TripletDataset(samples = image_path_triplets, root_dir = root_dir, transform = transform)
 # create dataloader
@@ -40,6 +41,10 @@ train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_s
 # Instantiate model
 # use pretrained model and just change head
 model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet50', pretrained=True)
+# grascale measure
+model.conv1.in_channels = 1
+conv_weight = model.conv1.weight
+model.conv1.weight = torch.nn.Parameter(conv_weight.sum(dim=1, keepdim=True))
 num_ftrs = model.fc.in_features
 model.fc = nn.Sequential(nn.Linear(num_ftrs, num_ftrs), nn.ReLU(),nn.Linear(num_ftrs, 1024), nn.ReLU(), nn.Linear(1024, 128) )
 # freeze all layers except the fully connected layers
@@ -51,15 +56,16 @@ for param in model.parameters():
 
 triplet_net = TripletNet(model).to(device=device)
 
-##test model
-#for anchor, pos, neg, ori_path in train_dataloader:
-#    print("in:", anchor.shape)
-#    anchor = anchor.to(device="cuda")
-#    pos = pos.to(device="cuda")
-#    neg = neg.to(device="cuda")
-#    anch_hidden, pos_hidden, neg_hidden = triplet_net(anchor, pos, neg)
-#    print("h:", anch_hidden.shape)
-#    break
+#test model
+for anchor, pos, neg, ori_path in train_dataloader:
+    print("in:", anchor.shape)
+    anchor = anchor.to(device="cuda")
+    pos = pos.to(device="cuda")
+    neg = neg.to(device="cuda")
+    anch_hidden, pos_hidden, neg_hidden = triplet_net(anchor, pos, neg)
+    print("h:", anch_hidden.shape)
+    break
+
 #################################################################
 
 
@@ -78,7 +84,7 @@ optimizer = torch.optim.Adam(triplet_net.parameters(), lr=lr, weight_decay=wd)
 triplet_loss = nn.TripletMarginWithDistanceLoss(distance_function=lambda x, y: 1-F.cosine_similarity(x, y), margin=margin) #torch.nn.TripletMarginLoss(margin=margin)
 # tensorboard writer
 log_dir = "experiments/runs/"
-run_name = f'wm_pretrained_unfrozen_triplets={len(image_path_triplets)}_size={size}_bs={batch_size}_margin={margin}_epochs={n_epochs}'
+run_name = f'grayscale_wm_pretrained_unfrozen_triplets={len(image_path_triplets)}_size={size}_bs={batch_size}_margin={margin}_epochs={n_epochs}'
 writer_log_path = log_dir + run_name
 writer = SummaryWriter(writer_log_path)
 
