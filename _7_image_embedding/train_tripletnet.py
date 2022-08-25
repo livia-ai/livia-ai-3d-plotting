@@ -16,7 +16,7 @@ from model import EmbeddingNet, TripletNet, train
 
 torch.cuda.empty_cache() 
 
-device = "cuda:2"
+device = "cuda:1"
 #################################################################
 # create dataset
 size = 224
@@ -87,6 +87,7 @@ run_name = f'grayscale_wm_pretrained_unfrozen_triplets={len(image_path_triplets)
 writer_log_path = log_dir + run_name
 writer = SummaryWriter(writer_log_path)
 # train model
+print(run_name)
 trained_triplet_net, epoch_losses = train(model = triplet_net,
                                     dataloader = train_dataloader,
                                     progress_bar = progress_bar,
