@@ -16,15 +16,19 @@ def compute_image_embedding(model, device, dataloader):
     with torch.no_grad():
         image_embedding_list = []
         id_list = []
-        unique = set()
+        #unique = set()
         for img_id, img in tqdm(dataloader):
-            if img_id[0] not in unique:
-                img = img.to(device=device)
-                encoded_img = model.encode(img)
-                image_embedding_list.append(encoded_img.cpu().numpy()[0])
-                unique.add(img_id[0])
-                id_list.append(img_id[0])
 
+            #if img_id[0] not in unique:
+            img = img.to(device=device)
+            encoded_img = model.encode(img)
+
+            image_embedding_list.extend(encoded_img.cpu().numpy())
+
+            #unique = unique.union(img_id)
+            id_list.extend(img_id)
+        print(len(image_embedding_list))
+        print(len(id_list))
     image_embedding = embedding.Embedding(np.array(image_embedding_list), np.array(id_list, dtype=object))
 
     return image_embedding

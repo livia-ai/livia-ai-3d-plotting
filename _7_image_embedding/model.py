@@ -67,7 +67,7 @@ class TripletNet(nn.Module):
     def encode(self, image):
         return self.embedding_model(image)
 
-def train(model, dataloader, progress_bar, loss_fn, optimizer, writer, device):
+def train(model, dataloader, progress_bar, loss_fn, optimizer, writer, noise, device):
 
     train_loss = list()
     # store number of updates
@@ -81,7 +81,9 @@ def train(model, dataloader, progress_bar, loss_fn, optimizer, writer, device):
             pos = positive.to(device=device)
             neg = negative.to(device=device)
 
-            anch_hidden, pos_hidden, neg_hidden = model(anchor, pos, neg)
+            noise_a = torch.randn(anchor.shape).to(device=device)*noise
+
+            anch_hidden, pos_hidden, neg_hidden = model(anchor+noise_a, pos, neg)
             loss = loss_fn(anch_hidden, pos_hidden, neg_hidden)     
             
             loss.backward()
