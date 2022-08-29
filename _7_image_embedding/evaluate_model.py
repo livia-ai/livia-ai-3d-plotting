@@ -15,51 +15,47 @@ import utility_functions  as uf
 if torch.cuda.is_available(): 
     device = "cuda" 
 else: 
-    device = "cpu"   
-
+    device = "cpu"
 
 #################################################################
+# specify museum
+museum = "bel"
 # specify run_name + log_dir + eval_dir + root directory
-
 # root_dir -> where images are stored
-root_dir = 'data_local/images/wm_cropped'
-
+root_dir = f'data_local/images/{museum}_cropped'
 # log_dir + run_name
-log_dir = "experiments/runs/"
-run_name = 'grayscale_wm_resnet_unpretrained_triplets=249996_size=224_bs=32_margin=1_epochs=10_lr=0.0001'
+log_dir = "experiments/runs/from_server/"
+run_name = 'grayscale_wm_pretrained_unfrozen_triplets=249996_size=224_bs=32_margin=1_epochs=10_lr=0.0001_noise=0.05'
 
 # directory where the results are stored
-evaluation_dir = f"evaluation_results/{run_name}"
+evaluation_dir = f"evaluation_results/{run_name}/{museum}"
 # create evaluation dir
 if not os.path.isdir("evaluation_results"):
     os.mkdir("evaluation_results")
+if not os.path.isdir(f"evaluation_results/{run_name}"):
+    os.mkdir(f"evaluation_results/{run_name}")
 if not os.path.isdir(evaluation_dir):
     os.mkdir(evaluation_dir)
 
-##################################################################
-##load sentence embedding
-##wm
-embedding_loaded = embedding.load_csv("data_local/wm/wm_sbert_title_districts_subjects_512d.csv")
-##bel
-##embedding_loaded = embedding.load_csv("data/bel/bel_sbert_Title_Description_ExpertTags_256d.csv")
 #################################################################
-# load museums data for plotting
+# load museums data
+if museum == "bel":
+    embedding_loaded = embedding.load_csv("data_local/bel/bel_sbert_Title_Description_ExpertTags_256d.csv")
+    museum_data = pd.read_csv("data_local/bel/belvedere.csv")
+    id_column = "Identifier"
+    title_column = "Title"
+    color_column = "ExpertTags"
+    museum_data = museum_data[[id_column, title_column, color_column]]
+    museum_data = museum_data.astype({id_column: "str"})
 
-## bel dataframe
-#museum_data = pd.read_csv("data/bel/belvedere.csv")
-#id_column = "Identifer"
-#title_column = "Title"
-#color_column = "ExpertTags"
-#museum_data = museum_data[[id_column, title_column, color_column]]
-#museum_data = museum_data.astype({id_column: "str"})
-
- # wm dataframe
-museum_data = pd.read_csv("data_local/wm/wien_museum.csv")
-id_column = "id"
-title_column = "title"
-color_column = "subjects"
-museum_data = museum_data[[id_column, title_column, color_column]]
-museum_data = museum_data.astype({id_column: "str"})
+if museum == "wm":
+    embedding_loaded = embedding.load_csv("data_local/wm/wm_sbert_title_districts_subjects_512d.csv")
+    museum_data = pd.read_csv("data_local/wm/wien_museum.csv")
+    id_column = "id"
+    title_column = "title"
+    color_column = "subjects"
+    museum_data = museum_data[[id_column, title_column, color_column]]
+    museum_data = museum_data.astype({id_column: "str"})
 #################################################################
 
 

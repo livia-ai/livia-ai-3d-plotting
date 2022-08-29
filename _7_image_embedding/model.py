@@ -70,6 +70,7 @@ class TripletNet(nn.Module):
 def train(model, dataloader, progress_bar, loss_fn, optimizer, writer, noise, device):
 
     train_loss = list()
+    l1 = torch.nn.L1Loss()
     # store number of updates
     j = 0
     for i in progress_bar:
@@ -81,11 +82,16 @@ def train(model, dataloader, progress_bar, loss_fn, optimizer, writer, noise, de
             pos = positive.to(device=device)
             neg = negative.to(device=device)
 
-            noise_a = torch.randn(anchor.shape).to(device=device)*noise
+            noise_a = torch.randn(anchor.shape).to(device=device)*noise[0]
+            noise_p = torch.randn(pos.shape).to(device=device)*noise[1]
+            noise_n = torch.randn(neg.shape).to(device=device)*noise[2]
 
-            anch_hidden, pos_hidden, neg_hidden = model(anchor+noise_a, pos, neg)
-            loss = loss_fn(anch_hidden, pos_hidden, neg_hidden)     
-            
+            anch_hidden, pos_hidden, neg_hidden = model(anchor+noise_a, pos+noise_p, neg+noise_n)
+
+            #norms = torch.linalg.norm(anch_hidden, dim=1)
+            loss = loss_fn(anch_hidden, pos_hidden, neg_hidden) #+ l1(norms, torch.ones(norms.shape).to(device=device))     
+            #print(np.sqrt(np.diag(anch_hidden.dot(anch_hidden.T))))
+
             loss.backward()
             optimizer.step()
             

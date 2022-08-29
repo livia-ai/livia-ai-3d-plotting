@@ -70,10 +70,10 @@ triplet_net = TripletNet(model).to(device=device)
 # train model
 # hyperparameters
 lr = 0.0001
-n_epochs = 10
+n_epochs = 1
 margin = 1
 wd = 0
-noise =  0.005
+noise =  [0.005, 0, 0]
 
 # progress bar
 progress_bar = tqdm(range(n_epochs))
