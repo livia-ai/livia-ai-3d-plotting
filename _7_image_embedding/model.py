@@ -67,7 +67,7 @@ class TripletNet(nn.Module):
     def encode(self, image):
         return self.embedding_model(image)
 
-def train(model, dataloader, progress_bar, loss_fn, optimizer, writer, noise, device):
+def train(model, dataloader, progress_bar, loss_fn, optimizer, writer, noise, device, model_name):
 
     train_loss = list()
     l1 = torch.nn.L1Loss()
@@ -108,7 +108,7 @@ def train(model, dataloader, progress_bar, loss_fn, optimizer, writer, noise, de
                         loss_info,
                         j)
 
-        torch.save(model, writer.log_dir + "/triplet_net.pt")
+        torch.save(model, writer.log_dir + f"/{model_name}.pt")
 
         # compute epoch loss and write into progress bar
         loss_str = str(np.around(np.mean(epoch_loss),5))
