@@ -108,7 +108,7 @@ def train(model, dataloader, progress_bar, loss_fn, optimizer, writer, noise, de
                         loss_info,
                         j)
 
-        torch.save(model, writer.log_dir + f"/{model_name}.pt")
+        torch.save(model, writer.log_dir + f"/{model_name}")
 
         # compute epoch loss and write into progress bar
         loss_str = str(np.around(np.mean(epoch_loss),5))

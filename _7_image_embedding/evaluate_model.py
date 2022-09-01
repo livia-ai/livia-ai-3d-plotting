@@ -24,8 +24,8 @@ museum = "bel"
 # root_dir -> where images are stored
 root_dir = f'data_local/images/{museum}_cropped'
 # log_dir + run_name
-log_dir = "experiments/runs/from_server/"
-run_name = 'grayscale_wm_pretrained_unfrozen_triplets=249996_size=224_bs=32_margin=1_epochs=10_lr=0.0001_noise=0.05'
+log_dir = "models_to_retrain/"
+run_name = 'grayscale_wm_pretrained_unfrozen_triplets=249996_size=224_bs=32_margin=1_epochs=20_lr=0.0001_noise=[0.005, 0.0, 0.0]'
 
 # directory where the results are stored
 evaluation_dir = f"evaluation_results/{run_name}/{museum}"
