@@ -29,8 +29,6 @@ def compute_image_embedding(model, device, dataloader):
 
             #unique = unique.union(img_id)
             id_list.extend(img_id)
-        print(len(image_embedding_list))
-        print(len(id_list))
     image_embedding = embedding.Embedding(np.array(image_embedding_list), np.array(id_list, dtype=object))
 
     return image_embedding

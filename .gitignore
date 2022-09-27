@@ -8,4 +8,4 @@ clustering_archive/
 .ipynb_checkpoints/
 experiments/
 models_to_retrain/
-_7_image_embedding/infernce/
+_7_image_embedding/inference/

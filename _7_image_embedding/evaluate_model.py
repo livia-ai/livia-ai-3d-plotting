@@ -104,7 +104,7 @@ eval_dataloader = torch.utils.data.DataLoader(eval_dataset, batch_size=128, shuf
 # load model
 triplet_model = torch.load(log_dir + run_name + "/triplet_net.pt", map_location=device)
 # create image embedding
-image_embedding = uf.compute_image_embedding(triplet_model, device, eval_dataloader, museum)
+image_embedding = uf.compute_image_embedding(triplet_model, device, eval_dataloader)
 # save image embedding as csv file
 embedding.save_to_csv(image_embedding, evaluation_dir + "/image_embedding")
 #####################################################################
