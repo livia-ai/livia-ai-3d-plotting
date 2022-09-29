@@ -2,15 +2,15 @@
 import torch
 from torchvision import transforms
 import livia.embedding as embedding
-
 from dataset import ImageDataset
 import utility_functions  as uf
-
 # check if GPU is available
 if torch.cuda.is_available(): 
     device = "cuda" 
 else: 
     device = "cpu"
+
+
 
 # specify path to images
 path_images = "inference/test_images"
@@ -18,6 +18,9 @@ path_images = "inference/test_images"
 path_model = "inference/triplet_net.pt"
 # specify path of output csv file containing the image embeddings
 path_image_embeddings = "inference/test_embeddings" # without .csv at the end 
+
+
+
 
 ##############################################################
 # Code to load images, the model and compute the embeddings
