@@ -4,6 +4,7 @@ from collections import defaultdict
 import livia.triplet as triplet
 import livia.embedding as embedding
 from dataset import TripletDataset
+import matplotlib.pyplot as plt
 
 #############################
 ## generate triplets
@@ -14,10 +15,12 @@ from dataset import TripletDataset
 #    pickle.dump(triplets, fp)
 #############################
 
+folder = 'data/wm_triplets_nnk=25_fnk=500'
+root_dir = "data/images/wm_cropped"
 
 ############################
 # load triplets
-with open(f'data/bel_image_paths', 'rb') as fp:
+with open(f'{folder}/image_paths', 'rb') as fp:
     triplets = pickle.load(fp)
 ############################
 
@@ -58,35 +61,36 @@ print("sim:", sum_sim/n)
 print("ori:", sum_ori/n)
 
 
-#######################################
-## plot some triplets
-#useable_triplets = []
-#for ori, sim, dis in triplets:
+######################################
+# plot some triplets
+useable_triplets = []
+for ori, sim, dis in triplets:
 
-#    split_ori = ori.split("/")
-#    split_sim = sim.split("/")
-#    split_dis = dis.split("/")
+    split_ori = ori.split("/")
+    split_sim = sim.split("/")
+    split_dis = dis.split("/")
 
-#    useable_triplets.append(("__@@__".join(split_ori), "__@@__".join(split_sim), "__@@__".join(split_dis)))
+    useable_triplets.append(("__@@__".join(split_ori), "__@@__".join(split_sim), "__@@__".join(split_dis)))
 
+print(len(useable_triplets))
 
-#root_dir = "data/images/bel_cropped"
-#dataset = TripletDataset(triplets = useable_triplets,
-#                         root_dir = root_dir)
+dataset = TripletDataset(samples = useable_triplets,
+                         root_dir = root_dir)
 
-#import matplotlib.pyplot as plt
-#for triplet in dataset: 
+print(len(dataset))
 
-#    print(triplet[3])
+for triplet in dataset: 
 
-#    fig,ax = plt.subplots(1,3)
-#    ax[0].imshow(triplet[0])
-#    ax[1].imshow(triplet[1])
-#    ax[2].imshow(triplet[2])
+    print(triplet[3])
 
-#    ax[0].set_title("Sample")
-#    ax[1].set_title("Similar")
-#    ax[2].set_title("Dissimilar")
-#    plt.show()
+    fig,ax = plt.subplots(1,3)
+    ax[0].imshow(triplet[0])
+    ax[1].imshow(triplet[1])
+    ax[2].imshow(triplet[2])
+
+    ax[0].set_title("Sample")
+    ax[1].set_title("Similar")
+    ax[2].set_title("Dissimilar")
+    plt.show()
 
 

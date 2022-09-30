@@ -35,7 +35,7 @@ def uniqueness_triplets(triplets):
     
     return triplets_unique, removed
 
-def generate_triplets(embedding:Embedding, method:str, n:int, seed:int=None, nn_k:int=5, fn_k:int=5):
+def generate_triplets(embedding:Embedding, method:str, n:int, seed:int=None, nn_k:int=5, fn_k:int=5, nr_clusters:int=8, nr_random_sample:int=3000):
     """
     :method: the method used to calculate the triplets -> "clustering" or "brute-force"
 
@@ -61,7 +61,9 @@ def generate_triplets(embedding:Embedding, method:str, n:int, seed:int=None, nn_
                                              n=n,
                                              rng=rng,
                                              nn_k=nn_k,
-                                             fn_k=fn_k)
+                                             fn_k=fn_k,
+                                             nr_clusters=nr_clusters,
+                                             nr_random_sample=nr_random_sample)
                     
     elif method == "brute-force":
         print(f"{n} triplets are generated. This may take a while ... ")
@@ -87,7 +89,7 @@ def generate_triplets(embedding:Embedding, method:str, n:int, seed:int=None, nn_
     print(f"{n-removed} triplets are returned")
     return triplets_unique
 
-def triplets_clustering(embedding, query, query_ids, n, rng, nn_k, fn_k, nr_clusters=8, n_random_sample=3000):
+def triplets_clustering(embedding, query, query_ids, n, rng, nn_k, fn_k, nr_clusters, n_random_sample):
     
     ################################
     # clustering

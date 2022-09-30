@@ -7,6 +7,8 @@ import numpy as np
 from livia import embedding
 from dataset import TripletDataset, MixedTripletDataset
 import matplotlib.pyplot as plt
+import pickle
+from torchvision import transforms
 
 def compute_image_embedding(model, device, dataloader):
     
@@ -16,15 +18,17 @@ def compute_image_embedding(model, device, dataloader):
     with torch.no_grad():
         image_embedding_list = []
         id_list = []
-        unique = set()
+        #unique = set()
         for img_id, img in tqdm(dataloader):
-            if img_id[0] not in unique:
-                img = img.to(device=device)
-                encoded_img = model.encode(img)
-                image_embedding_list.append(encoded_img.cpu().numpy()[0])
-                unique.add(img_id[0])
-                id_list.append(img_id[0])
 
+            #if img_id[0] not in unique:
+            img = img.to(device=device)
+            encoded_img = model.encode(img)
+
+            image_embedding_list.extend(encoded_img.cpu().numpy())
+
+            #unique = unique.union(img_id)
+            id_list.extend(img_id)
     image_embedding = embedding.Embedding(np.array(image_embedding_list), np.array(id_list, dtype=object))
 
     return image_embedding
@@ -109,3 +113,18 @@ def sample_images(src, folder_path, k):
     for file in sample:
         file_path = os.path.join(src, file)
         shutil.copy(file_path, folder_path)
+
+def prepare_grayscale_data(image_dir, triplets_image_paths_dir, batch_size):
+
+    with open(triplets_image_paths_dir, 'rb') as fp:
+        image_path_triplets = pickle.load(fp)
+    # specify transforms
+    transform = transforms.Compose([transforms.Grayscale(num_output_channels=1), transforms.ToTensor()])
+    #transform = transforms.Compose([transforms.CenterCrop(size), transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+    # generate train and test dataset
+    train_dataset = TripletDataset(samples = image_path_triplets, root_dir = image_dir, transform = transform)
+    # create dataloader
+    # sampler = torch.utils.data.RandomSampler(train_dataset, num_samples=25000)
+    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+
+    return train_dataloader, len(image_path_triplets)

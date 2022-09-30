@@ -2,6 +2,10 @@
 .vscode
 *.csv
 data/
+data_local/
+copy_to_server.zip
 clustering_archive/
 .ipynb_checkpoints/
 experiments/
+models_to_retrain/
+_7_image_embedding/inference/
