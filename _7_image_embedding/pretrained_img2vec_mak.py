@@ -1,6 +1,7 @@
 import csv
 import glob
 import numpy as np
+import pandas as pd
 from progress.bar import Bar
 from PIL import Image
 from img2vec_pytorch import Img2Vec
@@ -11,31 +12,42 @@ from sklearn.decomposition import PCA
 # EfficientNet-B3 produces vectors with 1536 dimensions 
 img2vec = Img2Vec(cuda=False, model='efficientnet_b3')
 
-print('reading folder...')
-# filenames = glob.glob('/home/rainers/Workspaces/livia/data/Belvedere/images-belvedere/*.jpg')
-filenames = glob.glob('/home/rainers/Workspaces/livia/data/Wien_Museum/images/*.jpg')
-print(f'{len(filenames)} files')
-
 vectors = []
 
-bar = Bar('Processing', max=len(filenames))
-for f in filenames:
-  # id = f[f.rfind('/') + 1 : f.rfind('.jpg')]
-  id = 'publikationsbilder/' + f[f.rfind('/') + 1 : f.rfind('.jpg')]
+# MAK has a correspondence file to get record ID <-> image filename,
+# which we'll loop through
+# open file in read mode
+records_csv = '/home/rainers/Workspaces/livia/data/MAK/mak_metadata_images_bewilligt.csv'
 
-  img = Image.open(f)
-  img = img.convert('RGB') # this sucks 
+with open(records_csv, 'r') as infile:
+  reader = csv.reader(infile)
 
-  vec = img2vec.get_vec(img)
+  next(reader, None)  # skip header
 
-  row = [ id ]
-  row.extend(vec)
+  # bar = Bar('Processing', max=len(filenames))
 
-  vectors.append(row)
-  
-  bar.next()
+  ctr = 1
 
-bar.finish()
+  for row in reader:
+    priref = row[0]
+    
+    url = row[4]
+
+    filepath = '/home/rainers/Workspaces/livia/data/MAK/images' + url[url.rfind('/publikationsbilder'):]
+
+    img = Image.open(filepath)
+    img = img.convert('RGB') # this sucks 
+
+    vec = img2vec.get_vec(img)
+
+    result_row = [ priref ]
+    result_row.extend(vec)
+
+    vectors.append(result_row)
+
+    print('Row ' + str(ctr), end='\r')
+    ctr += 1
+
 print('writing results to file')
 
 with open('results.csv', 'w') as outfile:
