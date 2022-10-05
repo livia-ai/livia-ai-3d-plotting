@@ -35,15 +35,18 @@ with open(records_csv, 'r') as infile:
 
     filepath = '/home/rainers/Workspaces/livia/data/MAK/images' + url[url.rfind('/publikationsbilder'):]
 
-    img = Image.open(filepath)
-    img = img.convert('RGB') # this sucks 
+    try:
+      img = Image.open(filepath)
+      img = img.convert('RGB') # this sucks 
 
-    vec = img2vec.get_vec(img)
+      vec = img2vec.get_vec(img)
 
-    result_row = [ priref ]
-    result_row.extend(vec)
+      result_row = [ priref ]
+      result_row.extend(vec)
 
-    vectors.append(result_row)
+      vectors.append(result_row)
+    except Exception as e:
+      print('Error loading image: ' + filepath)
 
     print('Row ' + str(ctr), end='\r')
     ctr += 1
