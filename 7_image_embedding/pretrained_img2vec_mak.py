@@ -1,7 +1,5 @@
 import csv
-import glob
 import numpy as np
-import pandas as pd
 from progress.bar import Bar
 from PIL import Image
 from img2vec_pytorch import Img2Vec
